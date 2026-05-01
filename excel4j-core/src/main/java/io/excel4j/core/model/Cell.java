@@ -8,6 +8,7 @@ public class Cell {
     private CellValue value;
     private String formula;
     private CellStyle style;
+    private CellValue cachedValue;
 
     public Cell(CellRef ref) {
         this.ref = ref;
@@ -31,4 +32,7 @@ public class Cell {
     public void setStyle(CellStyle style) {
         this.style = style != null ? style : CellStyle.DEFAULT;
     }
+
+    public CellValue getCachedValue() { return cachedValue; }
+    public void setCachedValue(CellValue value) { this.cachedValue = value; }
 }
