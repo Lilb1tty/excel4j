@@ -105,4 +105,16 @@ class FunctionTest {
     void findFunction() {
         assertThat(eval("FIND(\"el\",\"hello\")")).isEqualTo(new NumberValue(2.0));
     }
+
+    @Test
+    void yearMonthDay() {
+        assertThat(eval("YEAR(DATE(2024,1,15))")).isEqualTo(new NumberValue(2024.0));
+        assertThat(eval("MONTH(DATE(2024,1,15))")).isEqualTo(new NumberValue(1.0));
+        assertThat(eval("DAY(DATE(2024,1,15))")).isEqualTo(new NumberValue(15.0));
+    }
+
+    @Test
+    void weekdayFunction() {
+        assertThat(eval("WEEKDAY(DATE(2024,1,15),2)")).isInstanceOf(NumberValue.class);
+    }
 }
