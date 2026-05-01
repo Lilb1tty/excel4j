@@ -10,15 +10,20 @@ public class Evaluator {
 
     private final EvalContext ctx;
     private final FunctionRegistry functions;
+    private final java.util.Set<CellRef> visiting;
 
     public Evaluator(EvalContext ctx) {
-        this.ctx = ctx;
-        this.functions = new FunctionRegistry();
+        this(ctx, new FunctionRegistry(), new java.util.HashSet<>());
     }
 
     public Evaluator(EvalContext ctx, FunctionRegistry functions) {
+        this(ctx, functions, new java.util.HashSet<>());
+    }
+
+    public Evaluator(EvalContext ctx, FunctionRegistry functions, java.util.Set<CellRef> visiting) {
         this.ctx = ctx;
         this.functions = functions;
+        this.visiting = visiting;
     }
 
     public CellValue evaluate(FormulaNode node) {
@@ -27,7 +32,14 @@ public class Evaluator {
             case TextLiteral(var v) -> new TextValue(v);
             case BoolLiteral(var v) -> new BooleanValue(v);
             case ErrorLiteral(var t) -> new ErrorValue(t);
-            case CellRefNode(var ref, var rowAbs, var colAbs) -> ctx.resolve(ref);
+            case CellRefNode(var ref, var rowAbs, var colAbs) -> {
+                if (!visiting.add(ref)) {
+                    yield new ErrorValue(ErrorType.CIRCULAR_REF);
+                }
+                CellValue result = ctx.resolve(ref);
+                visiting.remove(ref);
+                yield result;
+            }
             case CellRangeNode(var range) -> evaluateRange(range);
             case BinaryOp(var op, var left, var right) -> evaluateBinary(op, left, right);
             case UnaryOp(var op, var operand) -> evaluateUnary(op, operand);
