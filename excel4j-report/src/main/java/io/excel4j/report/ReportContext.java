@@ -9,7 +9,7 @@ public final class ReportContext {
     private final Object item;
 
     private ReportContext(Map<String, Object> values, Object item) {
-        this.values = Map.copyOf(values);
+        this.values = new HashMap<>(values);
         this.item = item;
     }
 
