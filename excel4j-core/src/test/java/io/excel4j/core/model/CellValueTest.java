@@ -73,6 +73,7 @@ class CellValueTest {
                 case BlankValue ignored -> "blank";
                 case DateValue ignored -> "date";
                 case DateTimeValue ignored -> "datetime";
+                case RangeValue ignored -> "range";
             };
             assertThat(label).isNotNull();
         }

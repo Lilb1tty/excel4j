@@ -339,6 +339,10 @@ public class OoxmlWriter {
             }
             case BlankValue() -> {
             }
+            case RangeValue(var range, var values) -> {
+                throw new IllegalStateException(
+                        "RangeValue cannot be written as a single cell value: " + range);
+            }
         }
 
         if (cell.getFormula() != null) {
