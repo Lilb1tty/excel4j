@@ -3,6 +3,7 @@ package io.excel4j.core.model;
 import io.excel4j.core.exception.ExcelException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 public class Workbook {
 
@@ -40,5 +41,16 @@ public class Workbook {
 
     public List<Worksheet> sheets() {
         return List.copyOf(sheets);
+    }
+
+    public void recalculate(BiFunction<Worksheet, Cell, CellValue> evaluator) {
+        for (Worksheet sheet : sheets) {
+            for (Cell cell : sheet.cells().values()) {
+                if (cell.getFormula() != null) {
+                    CellValue result = evaluator.apply(sheet, cell);
+                    cell.setCachedValue(result);
+                }
+            }
+        }
     }
 }
