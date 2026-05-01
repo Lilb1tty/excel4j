@@ -102,7 +102,7 @@ public class Evaluator {
         return new NumberValue(op.applyAsDouble(toNumber(a), toNumber(b)));
     }
 
-    static double toNumber(CellValue v) {
+    public static double toNumber(CellValue v) {
         return switch (v) {
             case NumberValue(var n) -> n;
             case BooleanValue(var b) -> b ? 1 : 0;
