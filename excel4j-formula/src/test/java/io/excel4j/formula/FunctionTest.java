@@ -48,4 +48,31 @@ class FunctionTest {
     void sqrtNegative() {
         assertThat(eval("SQRT(-1)")).isEqualTo(new ErrorValue(ErrorType.NUM));
     }
+
+    @Test
+    void ifFunction() {
+        assertThat(eval("IF(TRUE,1,2)")).isEqualTo(new NumberValue(1.0));
+        assertThat(eval("IF(FALSE,1,2)")).isEqualTo(new NumberValue(2.0));
+    }
+
+    @Test
+    void andOrNot() {
+        assertThat(eval("AND(TRUE,TRUE)")).isEqualTo(new BooleanValue(true));
+        assertThat(eval("AND(TRUE,FALSE)")).isEqualTo(new BooleanValue(false));
+        assertThat(eval("OR(FALSE,TRUE)")).isEqualTo(new BooleanValue(true));
+        assertThat(eval("NOT(TRUE)")).isEqualTo(new BooleanValue(false));
+    }
+
+    @Test
+    void ifErrorFunction() {
+        assertThat(eval("IFERROR(1/0,99)")).isEqualTo(new NumberValue(99.0));
+        assertThat(eval("IFERROR(42,99)")).isEqualTo(new NumberValue(42.0));
+    }
+
+    @Test
+    void isFunctions() {
+        assertThat(eval("ISNUMBER(42)")).isEqualTo(new BooleanValue(true));
+        assertThat(eval("ISTEXT(\"hello\")")).isEqualTo(new BooleanValue(true));
+        assertThat(eval("ISERROR(1/0)")).isEqualTo(new BooleanValue(true));
+    }
 }
