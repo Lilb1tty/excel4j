@@ -75,4 +75,34 @@ class FunctionTest {
         assertThat(eval("ISTEXT(\"hello\")")).isEqualTo(new BooleanValue(true));
         assertThat(eval("ISERROR(1/0)")).isEqualTo(new BooleanValue(true));
     }
+
+    @Test
+    void leftRightMid() {
+        assertThat(eval("LEFT(\"hello\",2)")).isEqualTo(new TextValue("he"));
+        assertThat(eval("RIGHT(\"hello\",2)")).isEqualTo(new TextValue("lo"));
+        assertThat(eval("MID(\"hello\",2,2)")).isEqualTo(new TextValue("el"));
+    }
+
+    @Test
+    void lenAndTrim() {
+        assertThat(eval("LEN(\"hello\")")).isEqualTo(new NumberValue(5.0));
+        assertThat(eval("TRIM(\"  hello  \")")).isEqualTo(new TextValue("hello"));
+    }
+
+    @Test
+    void concatenateFunction() {
+        assertThat(eval("CONCATENATE(\"He\",\"llo\")"))
+            .isEqualTo(new TextValue("Hello"));
+    }
+
+    @Test
+    void upperLower() {
+        assertThat(eval("UPPER(\"hello\")")).isEqualTo(new TextValue("HELLO"));
+        assertThat(eval("LOWER(\"HELLO\")")).isEqualTo(new TextValue("hello"));
+    }
+
+    @Test
+    void findFunction() {
+        assertThat(eval("FIND(\"el\",\"hello\")")).isEqualTo(new NumberValue(2.0));
+    }
 }

@@ -111,7 +111,7 @@ public class Evaluator {
         };
     }
 
-    static String toText(CellValue v) {
+    public static String toText(CellValue v) {
         return switch (v) {
             case TextValue(var s) -> s;
             case NumberValue(var n) -> String.valueOf(n);
