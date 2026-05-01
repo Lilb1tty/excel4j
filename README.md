@@ -193,7 +193,7 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 
 ## Formula Functions (v1)
 
-50+ functions covering math, logic, text, date/time, and lookup/statistical:
+50 built-in functions covering math, logic, text, date/time, and lookup/statistical:
 
 **Math:** `SUM`, `PRODUCT`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `POWER`, `SQRT`, `COUNT`, `AVERAGE`
 
@@ -206,6 +206,8 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 **Lookup/Stat:** `VLOOKUP`, `INDEX`, `MATCH`, `COUNTA`, `COUNTIF`, `SUMIF`, `AVERAGEIF`
 
 Custom functions are extensible via `FunctionRegistry`.
+
+See the full [Function Reference](docs/functions.md) for syntax, parameters, and examples.
 
 ## Roadmap
 
@@ -224,6 +226,10 @@ Custom functions are extensible via `FunctionRegistry`.
 - [ ] Pivot tables
 - [ ] Expanded function library
 
+## Documentation
+
+- [Function Reference](docs/functions.md) — all 50 formula functions with syntax and examples
+
 ## Build
 
 ```bash
@@ -231,6 +237,34 @@ mvn clean test
 ```
 
 Requires Java 21. No `--enable-preview` features.
+
+## Changelog
+
+### v1.0.0 — 2026-05-01
+
+Initial release.
+
+**excel4j-core**
+- XLSX read/write via StAX streaming (low memory, handles large files)
+- Type-safe cell value model: `TextValue`, `NumberValue`, `BooleanValue`, `DateValue`, `DateTimeValue`, `ErrorValue`, `BlankValue`
+- Immutable `CellStyle` record with `Font`, `Fill`, `Border`, `NumberFormat`
+- Predefined number format constants + `NumberFormat.custom()`
+- A1 notation and row/col (1-based) cell addressing
+- `Excel.create()`, `Excel.read()`, `Excel.write()` static entry points
+
+**excel4j-formula**
+- Formula tokenizer, recursive-descent parser, AST evaluator
+- 50 built-in functions: math, logic, text, date/time, lookup/statistical
+- Circular reference detection — affected cells get `#CIRCULAR_REF`, rest continue
+- Extensible `FunctionRegistry` for custom functions
+- Full Excel error type propagation
+
+**excel4j-report**
+- FlexCel-style template engine with `<#value name>` and `<#band name>` / `</band>` tags
+- Band expansion: repeats rows for each item in a collection
+- Value substitution with dot-notation (`customer.name`), JavaBean getters, `Map` keys
+- Type-aware substitution: pure value tags get typed `CellValue`; mixed text gets string replacement
+- Style and formula preservation across expanded rows
 
 ## License
 
