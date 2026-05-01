@@ -28,6 +28,11 @@
         <artifactId>excel4j-report</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>io.excel4j</groupId>
+        <artifactId>excel4j-render</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 </project>
