@@ -7,7 +7,7 @@
   <parent>
     <groupId>io.excel4j</groupId>
     <artifactId>excel4j</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
   </parent>
   <artifactId>excel4j-render</artifactId>
   <dependencies>
