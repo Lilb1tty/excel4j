@@ -8,7 +8,9 @@ public record Row(int rowNum, Map<Integer, CellValue> cells) {
         cells = Map.copyOf(cells);
     }
 
+    private static final BlankValue BLANK = new BlankValue();
+
     public CellValue cell(int col) {
-        return cells.getOrDefault(col, new BlankValue());
+        return cells.getOrDefault(col, BLANK);
     }
 }

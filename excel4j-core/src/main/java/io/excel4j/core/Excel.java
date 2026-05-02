@@ -37,16 +37,23 @@ public final class Excel {
     }
 
     public static SheetStreamReader streamReader(Path path, int sheetIndex) {
+        if (sheetIndex < 1) throw new IllegalArgumentException("sheetIndex must be >= 1, got: " + sheetIndex);
+        ZipFile zip = null;
         try {
-            ZipFile zip = new ZipFile(path.toFile());
+            zip = new ZipFile(path.toFile());
             List<String> sharedStrings = SharedStringsTable.read(zip);
             var entry = zip.getEntry("xl/worksheets/sheet" + sheetIndex + ".xml");
             if (entry == null) {
-                zip.close();
                 throw new ExcelReadException("Sheet not found at index " + sheetIndex);
             }
-            return new SheetStreamReader(zip, sharedStrings, entry);
+            ZipFile owned = zip;
+            zip = null; // transfer ownership to SheetStreamReader
+            return new SheetStreamReader(owned, sharedStrings, entry);
+        } catch (ExcelReadException re) {
+            if (zip != null) try { zip.close(); } catch (IOException ignored) {}
+            throw re;
         } catch (IOException | javax.xml.stream.XMLStreamException e) {
+            if (zip != null) try { zip.close(); } catch (IOException ignored) {}
             throw new ExcelReadException("Failed to open XLSX for streaming: " + path, e);
         }
     }

@@ -21,18 +21,18 @@ public final class SheetStreamReader implements AutoCloseable {
     private final ZipFile zip;
     private final List<String> sharedStrings;
     private final ZipEntry sheetEntry;
-    private final XMLInputFactory xmlFactory = XMLInputFactory.newInstance();
+    private static final XMLInputFactory XML_FACTORY = XMLInputFactory.newInstance();
 
     public SheetStreamReader(ZipFile zip, List<String> sharedStrings, ZipEntry sheetEntry) {
         this.zip = zip;
-        this.sharedStrings = sharedStrings;
+        this.sharedStrings = List.copyOf(sharedStrings);
         this.sheetEntry = sheetEntry;
     }
 
     public Stream<Row> stream() {
         try {
             InputStream in = zip.getInputStream(sheetEntry);
-            XMLStreamReader r = xmlFactory.createXMLStreamReader(in);
+            XMLStreamReader r = XML_FACTORY.createXMLStreamReader(in);
             RowIterator it = new RowIterator(r, sharedStrings);
             Spliterator<Row> split = Spliterators.spliteratorUnknownSize(it,
                 Spliterator.ORDERED | Spliterator.NONNULL);
@@ -127,15 +127,12 @@ public final class SheetStreamReader implements AutoCloseable {
                                             && !pendingCells.isEmpty()) {
                                         buffer.add(new Row(pendingRowNum, new HashMap<>(pendingCells)));
                                         pendingCells.clear();
-                                        if (!buffer.isEmpty()) {
-                                            // Save state for next cell and come back
-                                            pendingRowNum = rowNum;
-                                            currentCol = cellRef.col();
-                                            currentType = r.getAttributeValue(null, "t");
-                                            currentValue.setLength(0);
-                                            inValue = false;
-                                            return; // yield row, resume on next hasNext()/next() call
-                                        }
+                                        pendingRowNum = rowNum;
+                                        currentCol = cellRef.col();
+                                        currentType = r.getAttributeValue(null, "t");
+                                        currentValue.setLength(0);
+                                        inValue = false;
+                                        return; // yield row, resume on next hasNext()/next() call
                                     }
                                     pendingRowNum = rowNum;
                                     currentCol = cellRef.col();
