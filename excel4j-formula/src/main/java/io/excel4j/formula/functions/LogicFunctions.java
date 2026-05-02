@@ -21,6 +21,10 @@ public final class LogicFunctions {
         reg.register("ISTEXT", LogicFunctions::isText);
         reg.register("ISLOGICAL", LogicFunctions::isLogical);
         reg.register("ISERROR", LogicFunctions::isError);
+        reg.register("XOR", LogicFunctions::xor);
+        reg.register("IFS", LogicFunctions::ifs);
+        reg.register("SWITCH", LogicFunctions::switchFunc);
+        reg.register("IFNA", LogicFunctions::ifna);
     }
 
     static CellValue ifFunc(List<CellValue> args, EvalContext ctx) {
@@ -85,5 +89,38 @@ public final class LogicFunctions {
             case BlankValue() -> false;
             default -> false;
         };
+    }
+
+    static CellValue xor(List<CellValue> args, EvalContext ctx) {
+        boolean result = false;
+        for (CellValue v : args) result ^= toBool(v);
+        return new BooleanValue(result);
+    }
+
+    static CellValue ifs(List<CellValue> args, EvalContext ctx) {
+        for (int i = 0; i + 1 < args.size(); i += 2) {
+            if (toBool(args.get(i))) return args.get(i + 1);
+        }
+        return new ErrorValue(ErrorType.NA);
+    }
+
+    static CellValue switchFunc(List<CellValue> args, EvalContext ctx) {
+        CellValue expr = args.get(0);
+        // args: expr, val1, result1, val2, result2, ..., [default]
+        // default present when (args.size() - 1) is odd (i.e., args.size() is even)
+        boolean hasDefault = args.size() % 2 == 0;
+        int pairEnd = hasDefault ? args.size() - 1 : args.size();
+        for (int i = 1; i + 1 < pairEnd; i += 2) {
+            if (LookupStatFunctions.equals(expr, args.get(i))) return args.get(i + 1);
+        }
+        return hasDefault ? args.get(args.size() - 1) : new ErrorValue(ErrorType.NA);
+    }
+
+    static CellValue ifna(List<CellValue> args, EvalContext ctx) {
+        CellValue v = args.get(0);
+        if (v instanceof ErrorValue ev && ev.type() == ErrorType.NA) {
+            return args.size() > 1 ? args.get(1) : new BlankValue();
+        }
+        return v;
     }
 }

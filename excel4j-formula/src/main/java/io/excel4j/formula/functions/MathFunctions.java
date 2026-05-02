@@ -25,6 +25,22 @@ public final class MathFunctions {
         reg.register("SQRT", MathFunctions::sqrt);
         reg.register("COUNT", MathFunctions::count);
         reg.register("AVERAGE", MathFunctions::average);
+        reg.register("CEILING", MathFunctions::ceiling);
+        reg.register("FLOOR", MathFunctions::floor);
+        reg.register("ROUNDUP", MathFunctions::roundUp);
+        reg.register("ROUNDDOWN", MathFunctions::roundDown);
+        reg.register("TRUNC", MathFunctions::trunc);
+        reg.register("SIGN", MathFunctions::sign);
+        reg.register("LOG", MathFunctions::log);
+        reg.register("LOG10", MathFunctions::log10);
+        reg.register("LN", MathFunctions::ln);
+        reg.register("EXP", MathFunctions::exp);
+        reg.register("PI", MathFunctions::pi);
+        reg.register("RAND", MathFunctions::rand);
+        reg.register("RANDBETWEEN", MathFunctions::randBetween);
+        reg.register("FACT", MathFunctions::fact);
+        reg.register("SUMPRODUCT", MathFunctions::sumProduct);
+        reg.register("SUMSQ", MathFunctions::sumSq);
     }
 
     static CellValue sum(List<CellValue> args, EvalContext ctx) {
@@ -125,5 +141,107 @@ public final class MathFunctions {
         }
         if (c == 0) return new ErrorValue(ErrorType.DIV_BY_ZERO);
         return new NumberValue(sum / c);
+    }
+
+    static CellValue ceiling(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        double sig = Evaluator.toNumber(args.get(1));
+        if (sig == 0) return new NumberValue(0);
+        return new NumberValue(Math.ceil(n / sig) * sig);
+    }
+
+    static CellValue floor(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        double sig = Evaluator.toNumber(args.get(1));
+        if (sig == 0) return new NumberValue(0);
+        return new NumberValue(Math.floor(n / sig) * sig);
+    }
+
+    static CellValue roundUp(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        int digits = (int) Evaluator.toNumber(args.get(1));
+        double factor = Math.pow(10, digits);
+        double abs = Math.abs(n);
+        return new NumberValue(Math.signum(n) * Math.ceil(abs * factor) / factor);
+    }
+
+    static CellValue roundDown(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        int digits = (int) Evaluator.toNumber(args.get(1));
+        double factor = Math.pow(10, digits);
+        double abs = Math.abs(n);
+        return new NumberValue(Math.signum(n) * Math.floor(abs * factor) / factor);
+    }
+
+    static CellValue trunc(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        int digits = args.size() > 1 ? (int) Evaluator.toNumber(args.get(1)) : 0;
+        double factor = Math.pow(10, digits);
+        return new NumberValue((n >= 0 ? Math.floor(n * factor) : Math.ceil(n * factor)) / factor);
+    }
+
+    static CellValue sign(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        return new NumberValue(n > 0 ? 1 : n < 0 ? -1 : 0);
+    }
+
+    static CellValue log(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        double base = args.size() > 1 ? Evaluator.toNumber(args.get(1)) : 10;
+        if (n <= 0) return new ErrorValue(ErrorType.NUM);
+        return new NumberValue(Math.log(n) / Math.log(base));
+    }
+
+    static CellValue log10(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        if (n <= 0) return new ErrorValue(ErrorType.NUM);
+        return new NumberValue(Math.log10(n));
+    }
+
+    static CellValue ln(List<CellValue> args, EvalContext ctx) {
+        double n = Evaluator.toNumber(args.get(0));
+        if (n <= 0) return new ErrorValue(ErrorType.NUM);
+        return new NumberValue(Math.log(n));
+    }
+
+    static CellValue exp(List<CellValue> args, EvalContext ctx) {
+        return new NumberValue(Math.exp(Evaluator.toNumber(args.get(0))));
+    }
+
+    static CellValue pi(List<CellValue> args, EvalContext ctx) {
+        return new NumberValue(Math.PI);
+    }
+
+    static CellValue rand(List<CellValue> args, EvalContext ctx) {
+        return new NumberValue(Math.random());
+    }
+
+    static CellValue randBetween(List<CellValue> args, EvalContext ctx) {
+        int low = (int) Evaluator.toNumber(args.get(0));
+        int high = (int) Evaluator.toNumber(args.get(1));
+        return new NumberValue(low + (int)(Math.random() * (high - low + 1)));
+    }
+
+    static CellValue fact(List<CellValue> args, EvalContext ctx) {
+        int n = (int) Evaluator.toNumber(args.get(0));
+        if (n < 0) return new ErrorValue(ErrorType.NUM);
+        double result = 1;
+        for (int i = 2; i <= n; i++) result *= i;
+        return new NumberValue(result);
+    }
+
+    static CellValue sumProduct(List<CellValue> args, EvalContext ctx) {
+        double sum = 0;
+        for (CellValue v : args) sum += Evaluator.toNumber(v);
+        return new NumberValue(sum);
+    }
+
+    static CellValue sumSq(List<CellValue> args, EvalContext ctx) {
+        double sum = 0;
+        for (CellValue v : args) {
+            double n = Evaluator.toNumber(v);
+            sum += n * n;
+        }
+        return new NumberValue(sum);
     }
 }
