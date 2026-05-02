@@ -10,6 +10,7 @@ public class Worksheet {
     private final WorksheetName name;
     private final Map<CellRef, Cell> cells = new HashMap<>();
     private final List<Chart> charts = new ArrayList<>();
+    private final List<PivotTable> pivotTables = new ArrayList<>();
 
     public Worksheet(WorksheetName name) {
         this.name = name;
@@ -39,5 +40,13 @@ public class Worksheet {
 
     public List<Chart> charts() {
         return List.copyOf(charts);
+    }
+
+    public void addPivotTable(PivotTable pivotTable) {
+        pivotTables.add(pivotTable);
+    }
+
+    public List<PivotTable> pivotTables() {
+        return List.copyOf(pivotTables);
     }
 }

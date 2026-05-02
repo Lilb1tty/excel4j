@@ -29,8 +29,11 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 - **Zero runtime dependencies** — JDK 21 only
 - **Read & write `.xlsx`** — StAX streaming, low memory footprint
 - **Streaming read API** — row-by-row `Stream<Row>` for large files without full workbook load
-- **Formula evaluation** — 68 built-in functions with dependency graph and circular reference handling
+- **Formula evaluation** — 98 built-in functions with dependency graph and circular reference handling
 - **Template engine** — FlexCel-style `<#value>` and `<#band>` tags for report generation
+- **Pivot tables** — write pivot tables with row fields and data aggregations
+- **PNG/JPEG rendering** — render worksheets to images via AWT (headless-safe)
+- **PDF export** — render workbooks to PDF, one page per sheet
 - **Type-safe cell values** — sealed `CellValue` interface with pattern-matching support
 - **Full JPMS** — `module-info.java` per module, strict compile-time boundaries
 - **Modern Java** — records, sealed interfaces, pattern matching switch
@@ -188,6 +191,72 @@ Excel.write(output, Path.of("invoice-2024-001.xlsx"));
 
 The engine expands bands row-by-row, substitutes values, and preserves styles and formulas.
 
+### Pivot tables
+
+```java
+Workbook wb = Excel.create();
+Worksheet sheet = wb.sheet("Sales");
+
+// Source data
+sheet.cell("A1").setValue(new TextValue("Product"));
+sheet.cell("B1").setValue(new TextValue("Region"));
+sheet.cell("C1").setValue(new TextValue("Amount"));
+sheet.cell("A2").setValue(new TextValue("Widget"));
+sheet.cell("B2").setValue(new TextValue("North"));
+sheet.cell("C2").setValue(new NumberValue(1250));
+
+PivotTable pt = PivotTable.builder()
+    .name("SalesSummary")
+    .sourceRange(CellRange.of("A1", "C10"))
+    .rowField("Product")
+    .rowField("Region")
+    .dataField("Amount", "sum")
+    .location("E1")
+    .build();
+sheet.addPivotTable(pt);
+
+Excel.write(wb, Path.of("report.xlsx"));
+```
+
+Excel regenerates pivot cache data on open. Only pivot layout definition is written.
+
+### Render to PNG/JPEG
+
+```java
+import io.excel4j.render.SheetRenderer;
+import io.excel4j.render.RenderOptions;
+
+Workbook wb = Excel.read(Path.of("report.xlsx"));
+Worksheet sheet = wb.sheet(1);
+
+// Default options (96px wide columns, 22px tall rows, 11pt font)
+SheetRenderer.toPng(sheet, Path.of("sheet.png"));
+SheetRenderer.toJpeg(sheet, Path.of("sheet.jpg"));
+
+// Custom options
+RenderOptions opts = new RenderOptions(120, 28, 13, 4);
+SheetRenderer.toPng(sheet, Path.of("sheet-large.png"), opts);
+
+// Or get a BufferedImage directly
+BufferedImage img = SheetRenderer.toImage(sheet, RenderOptions.defaults());
+```
+
+### Render to PDF
+
+```java
+import io.excel4j.render.PdfRenderer;
+
+Workbook wb = Excel.read(Path.of("report.xlsx"));
+
+// One page per worksheet, A4 portrait
+PdfRenderer.toPdf(wb, Path.of("report.pdf"));
+
+// Single sheet
+PdfRenderer.toPdf(wb.sheet(1), Path.of("page1.pdf"));
+```
+
+Rendering uses `java.awt` in headless mode — no display required. PDF output embeds rendered images into a minimal PDF 1.4 document. Requires the `excel4j-render` module.
+
 ## Architecture
 
 ```
@@ -196,7 +265,7 @@ excel4j/
 ├── excel4j-core/         XLSX I/O + workbook/cell model
 ├── excel4j-formula/      Formula parser, AST, evaluator
 ├── excel4j-report/       Template engine (FlexCel-style)
-└── excel4j-render/       PDF/image rendering (v2 stub)
+└── excel4j-render/       PNG/JPEG/PDF rendering (AWT + raw PDF)
 ```
 
 Dependency direction: `report` → `formula` → `core`
@@ -248,10 +317,9 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 - [x] Streaming read API — `Stream<Row>` for large files
 - [x] Expanded function library (50 → 98)
 - [x] Array formulas / dynamic arrays
-
-### v2
-- [ ] PDF/image rendering (`excel4j-render`)
-- [ ] Pivot tables
+- [x] Pivot tables (write path)
+- [x] PNG/JPEG rendering — `excel4j-render` (`SheetRenderer`)
+- [x] PDF export — `excel4j-render` (`PdfRenderer`)
 
 ## Documentation
 
@@ -266,6 +334,22 @@ mvn clean test
 Requires Java 21. No `--enable-preview` features.
 
 ## Changelog
+
+### v1.6.0 — 2026-05-02
+
+**excel4j-render** (new module)
+- `SheetRenderer` — renders worksheets to `BufferedImage`, PNG, or JPEG using `java.awt` (headless-safe)
+- `PdfRenderer` — renders workbooks to PDF (one A4 page per sheet) using raw PDF 1.4 writing with embedded images
+- `RenderOptions` record — configure cell dimensions, font size, and padding
+- Zero external dependencies — `java.desktop` module only
+
+### v1.5.0 — 2026-05-02
+
+**excel4j-core**
+- Pivot table support (write path): row fields + data fields with aggregation
+- `PivotTable` builder API with `sourceRange`, `rowField`, `dataField`, and `location`
+- `Worksheet.addPivotTable()` attaches pivot tables to worksheets
+- Full OOXML pivotCache/pivotTable/rels plumbing written to XLSX output
 
 ### v1.4.0 — 2026-05-02
 

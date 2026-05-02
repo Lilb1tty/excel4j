@@ -26,28 +26,48 @@ public class OoxmlWriter {
             SharedStringsTable sst = buildSharedStrings(workbook);
             StyleTable styleTable = buildStyleTable(workbook);
             int totalCharts = 0;
+            int totalPivotTables = 0;
             for (Worksheet sheet : workbook.sheets()) {
                 totalCharts += sheet.charts().size();
+                totalPivotTables += sheet.pivotTables().size();
             }
-            writeContentTypes(zip, workbook, totalCharts);
+            writeContentTypes(zip, workbook, totalCharts, totalPivotTables);
             writeRels(zip);
             writeWorkbook(zip, workbook);
-            writeWorkbookRels(zip, workbook.sheets().size());
+            writeWorkbookRels(zip, workbook.sheets().size(), totalPivotTables);
             writeSharedStrings(zip, sst);
             writeStyles(zip, styleTable);
             int chartIndex = 1;
+            int pivotTableIndex = 1;
+            int pivotCacheIndex = 1;
             for (int i = 0; i < workbook.sheets().size(); i++) {
                 Worksheet sheet = workbook.sheets().get(i);
                 int sheetNum = i + 1;
-                if (!sheet.charts().isEmpty()) {
+                boolean hasCharts = !sheet.charts().isEmpty();
+                boolean hasPivotTables = !sheet.pivotTables().isEmpty();
+                int sheetPivotStart = pivotTableIndex;
+                int sheetCacheStart = pivotCacheIndex;
+
+                if (hasCharts) {
                     int startChartIndex = chartIndex;
                     for (Chart chart : sheet.charts()) {
                         writeChart(zip, sheet, chart, chartIndex++);
                     }
                     writeDrawing(zip, sheet, sheetNum);
                     writeDrawingRels(zip, sheetNum, startChartIndex, sheet.charts().size());
-                    writeSheetRels(zip, sheetNum);
                 }
+
+                if (hasPivotTables) {
+                    for (PivotTable pt : sheet.pivotTables()) {
+                        writePivotCacheDefinition(zip, pt, sheet, pivotCacheIndex++);
+                        writePivotTable(zip, pt, sheetNum, pivotTableIndex++, sheetCacheStart++);
+                    }
+                }
+
+                if (hasCharts || hasPivotTables) {
+                    writeSheetRels(zip, sheetNum, hasCharts, sheetPivotStart, sheet.pivotTables().size());
+                }
+
                 writeSheet(zip, sheet, sheetNum, sst, styleTable);
             }
         } catch (IOException | XMLStreamException e) {
@@ -76,7 +96,8 @@ public class OoxmlWriter {
         return st;
     }
 
-    private void writeContentTypes(ZipOutputStream zip, Workbook workbook, int totalCharts)
+    private void writeContentTypes(ZipOutputStream zip, Workbook workbook, int totalCharts,
+            int totalPivotTables)
             throws IOException, XMLStreamException {
         int sheetCount = workbook.sheets().size();
         zip.putNextEntry(new ZipEntry("[Content_Types].xml"));
@@ -105,6 +126,12 @@ public class OoxmlWriter {
                 writeOverride(w, "/xl/drawings/drawing" + i + ".xml",
                     "application/vnd.openxmlformats-officedocument.drawingml.spreadsheetDrawing+xml");
             }
+        }
+        for (int i = 1; i <= totalPivotTables; i++) {
+            writeOverride(w, "/xl/pivotCache/pivotCacheDefinition" + i + ".xml",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.pivotCacheDefinition+xml");
+            writeOverride(w, "/xl/pivotTables/pivotTable" + i + ".xml",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.pivotTable+xml");
         }
         w.writeEndElement();
         w.writeEndDocument();
@@ -161,7 +188,7 @@ public class OoxmlWriter {
         zip.closeEntry();
     }
 
-    private void writeWorkbookRels(ZipOutputStream zip, int sheetCount)
+    private void writeWorkbookRels(ZipOutputStream zip, int sheetCount, int totalPivotTables)
             throws IOException, XMLStreamException {
         zip.putNextEntry(new ZipEntry("xl/_rels/workbook.xml.rels"));
         XMLStreamWriter w = startXml(zip);
@@ -186,6 +213,13 @@ public class OoxmlWriter {
         w.writeAttribute("Type",
             "http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles");
         w.writeAttribute("Target", "styles.xml");
+        for (int i = 1; i <= totalPivotTables; i++) {
+            w.writeEmptyElement("Relationship");
+            w.writeAttribute("Id", "rId" + (sheetCount + 2 + i));
+            w.writeAttribute("Type",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotCacheDefinition");
+            w.writeAttribute("Target", "pivotCache/pivotCacheDefinition" + i + ".xml");
+        }
         w.writeEndElement();
         w.writeEndDocument();
         w.flush();
@@ -300,8 +334,9 @@ public class OoxmlWriter {
         w.writeDefaultNamespace(
             "http://schemas.openxmlformats.org/spreadsheetml/2006/main");
         boolean hasCharts = !sheet.charts().isEmpty();
+        boolean hasPivotTables = !sheet.pivotTables().isEmpty();
         String rNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-        if (hasCharts) {
+        if (hasCharts || hasPivotTables) {
             w.writeNamespace("r", rNs);
         }
         w.writeStartElement("sheetData");
@@ -322,6 +357,16 @@ public class OoxmlWriter {
         if (hasCharts) {
             w.writeEmptyElement("drawing");
             w.writeAttribute(rNs, "id", "rId1");
+        }
+        if (hasPivotTables) {
+            int startRId = hasCharts ? 2 : 1;
+            w.writeStartElement("tableParts");
+            w.writeAttribute("count", String.valueOf(sheet.pivotTables().size()));
+            for (int i = 0; i < sheet.pivotTables().size(); i++) {
+                w.writeEmptyElement("tablePart");
+                w.writeAttribute(rNs, "id", "rId" + (startRId + i));
+            }
+            w.writeEndElement();
         }
         w.writeEndElement(); // worksheet
         w.writeEndDocument();
@@ -388,6 +433,166 @@ public class OoxmlWriter {
         }
 
         w.writeEndElement(); // c
+    }
+
+    private void writePivotCacheDefinition(ZipOutputStream zip, PivotTable pt,
+            Worksheet sheet, int cacheIndex)
+            throws IOException, XMLStreamException {
+        zip.putNextEntry(new ZipEntry("xl/pivotCache/pivotCacheDefinition" + cacheIndex + ".xml"));
+        XMLStreamWriter w = startXml(zip);
+        w.writeStartDocument("UTF-8", "1.0");
+        w.writeStartElement("pivotCacheDefinition");
+        w.writeDefaultNamespace("http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+        w.writeAttribute("refreshOnLoad", "1");
+        w.writeAttribute("createdVersion", "6");
+        w.writeAttribute("minRefreshableVersion", "3");
+        w.writeAttribute("recordCount", "0");
+
+        w.writeStartElement("cacheSource");
+        w.writeAttribute("type", "worksheet");
+        w.writeStartElement("worksheetSource");
+        w.writeAttribute("ref", pt.sourceRange().first().toA1() + ":" + pt.sourceRange().last().toA1());
+        w.writeAttribute("sheet", sheet.name().value());
+        w.writeEndElement();
+        w.writeEndElement();
+
+        List<String> allFields = new java.util.ArrayList<>();
+        for (String rf : pt.rowFields()) {
+            if (!allFields.contains(rf)) allFields.add(rf);
+        }
+        for (DataField df : pt.dataFields()) {
+            if (!allFields.contains(df.name())) allFields.add(df.name());
+        }
+
+        w.writeStartElement("cacheFields");
+        w.writeAttribute("count", String.valueOf(allFields.size()));
+        for (String field : allFields) {
+            w.writeStartElement("cacheField");
+            w.writeAttribute("name", field);
+            w.writeAttribute("numFmtId", "0");
+            w.writeStartElement("sharedItems");
+            w.writeAttribute("count", "0");
+            w.writeEndElement();
+            w.writeEndElement();
+        }
+        w.writeEndElement();
+
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.flush();
+        zip.closeEntry();
+    }
+
+    private void writePivotTable(ZipOutputStream zip, PivotTable pt, int sheetNum,
+            int pivotTableIndex, int cacheIndex)
+            throws IOException, XMLStreamException {
+        zip.putNextEntry(new ZipEntry("xl/pivotTables/pivotTable" + pivotTableIndex + ".xml"));
+        XMLStreamWriter w = startXml(zip);
+        w.writeStartDocument("UTF-8", "1.0");
+        w.writeStartElement("pivotTableDefinition");
+        w.writeDefaultNamespace("http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+        w.writeAttribute("name", pt.name());
+        w.writeAttribute("cacheId", String.valueOf(cacheIndex - 1));
+        w.writeAttribute("dataOnRows", "0");
+        w.writeAttribute("applyNumberFormats", "0");
+        w.writeAttribute("applyBorderFormats", "0");
+        w.writeAttribute("applyFontFormats", "0");
+        w.writeAttribute("applyPatternFormats", "0");
+        w.writeAttribute("applyAlignmentFormats", "0");
+        w.writeAttribute("applyWidthHeightFormats", "1");
+        w.writeAttribute("autoFormatId", "0");
+        w.writeAttribute("ref", pt.location().toA1());
+        w.writeAttribute("createdVersion", "6");
+        w.writeAttribute("minRefreshableVersion", "3");
+        w.writeAttribute("updatedVersion", "6");
+
+        w.writeStartElement("location");
+        w.writeAttribute("ref", pt.location().toA1());
+        w.writeAttribute("firstHeaderRow", "1");
+        w.writeAttribute("firstDataRow", "1");
+        w.writeAttribute("firstDataCol", "1");
+        w.writeAttribute("rowPageCount", "0");
+        w.writeAttribute("colPageCount", "0");
+        w.writeEndElement();
+
+        List<String> allFields = new java.util.ArrayList<>();
+        for (String rf : pt.rowFields()) {
+            if (!allFields.contains(rf)) allFields.add(rf);
+        }
+        for (DataField df : pt.dataFields()) {
+            if (!allFields.contains(df.name())) allFields.add(df.name());
+        }
+
+        w.writeStartElement("pivotFields");
+        w.writeAttribute("count", String.valueOf(allFields.size()));
+        for (int i = 0; i < allFields.size(); i++) {
+            String field = allFields.get(i);
+            w.writeStartElement("pivotField");
+            boolean isRow = pt.rowFields().contains(field);
+            boolean isData = pt.dataFields().stream().anyMatch(df -> df.name().equals(field));
+            if (isRow) {
+                w.writeAttribute("axis", "axisRow");
+            }
+            if (isData) {
+                w.writeAttribute("dataField", "1");
+            }
+            w.writeAttribute("showAll", "0");
+            w.writeStartElement("items");
+            w.writeAttribute("count", "1");
+            w.writeEmptyElement("item");
+            w.writeAttribute("t", "default");
+            w.writeEndElement();
+            w.writeEndElement();
+        }
+        w.writeEndElement();
+
+        w.writeStartElement("rowFields");
+        w.writeAttribute("count", String.valueOf(pt.rowFields().size()));
+        for (String rf : pt.rowFields()) {
+            int idx = allFields.indexOf(rf);
+            w.writeEmptyElement("field");
+            w.writeAttribute("x", String.valueOf(idx));
+        }
+        w.writeEndElement();
+
+        w.writeStartElement("rowItems");
+        w.writeAttribute("count", "1");
+        w.writeStartElement("i");
+        w.writeEmptyElement("x");
+        w.writeEndElement();
+        w.writeEndElement();
+
+        w.writeStartElement("dataFields");
+        w.writeAttribute("count", String.valueOf(pt.dataFields().size()));
+        for (DataField df : pt.dataFields()) {
+            int idx = allFields.indexOf(df.name());
+            w.writeStartElement("dataField");
+            w.writeAttribute("name", capitalize(df.aggregation()) + " of " + df.name());
+            w.writeAttribute("fld", String.valueOf(idx));
+            w.writeAttribute("baseField", "0");
+            w.writeAttribute("baseItem", "0");
+            w.writeEndElement();
+        }
+        w.writeEndElement();
+
+        w.writeStartElement("pivotTableStyleInfo");
+        w.writeAttribute("name", "PivotStyleLight16");
+        w.writeAttribute("showRowHeaders", "1");
+        w.writeAttribute("showColHeaders", "1");
+        w.writeAttribute("showRowStripes", "0");
+        w.writeAttribute("showColStripes", "0");
+        w.writeAttribute("showLastColumn", "1");
+        w.writeEndElement();
+
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.flush();
+        zip.closeEntry();
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }
 
     private void writeChart(ZipOutputStream zip, Worksheet sheet, Chart chart, int chartIndex)
@@ -681,18 +886,29 @@ public class OoxmlWriter {
         zip.closeEntry();
     }
 
-    private void writeSheetRels(ZipOutputStream zip, int sheetIndex)
+    private void writeSheetRels(ZipOutputStream zip, int sheetIndex, boolean hasCharts,
+            int sheetPivotStart, int pivotTableCount)
             throws IOException, XMLStreamException {
         zip.putNextEntry(new ZipEntry("xl/worksheets/_rels/sheet" + sheetIndex + ".xml.rels"));
         XMLStreamWriter w = startXml(zip);
         w.writeStartDocument("UTF-8", "1.0");
         w.writeStartElement("Relationships");
         w.writeDefaultNamespace("http://schemas.openxmlformats.org/package/2006/relationships");
-        w.writeEmptyElement("Relationship");
-        w.writeAttribute("Id", "rId1");
-        w.writeAttribute("Type",
-            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing");
-        w.writeAttribute("Target", "../drawings/drawing" + sheetIndex + ".xml");
+        int rId = 1;
+        if (hasCharts) {
+            w.writeEmptyElement("Relationship");
+            w.writeAttribute("Id", "rId" + rId++);
+            w.writeAttribute("Type",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing");
+            w.writeAttribute("Target", "../drawings/drawing" + sheetIndex + ".xml");
+        }
+        for (int i = 0; i < pivotTableCount; i++) {
+            w.writeEmptyElement("Relationship");
+            w.writeAttribute("Id", "rId" + rId++);
+            w.writeAttribute("Type",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/pivotTable");
+            w.writeAttribute("Target", "../pivotTables/pivotTable" + (sheetPivotStart + i) + ".xml");
+        }
         w.writeEndElement();
         w.writeEndDocument();
         w.flush();
