@@ -28,6 +28,7 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 
 - **Zero runtime dependencies** — JDK 21 only
 - **Read & write `.xlsx`** — StAX streaming, low memory footprint
+- **Streaming read API** — row-by-row `Stream<Row>` for large files without full workbook load
 - **Formula evaluation** — 50+ built-in functions with dependency graph and circular reference handling
 - **Template engine** — FlexCel-style `<#value>` and `<#band>` tags for report generation
 - **Type-safe cell values** — sealed `CellValue` interface with pattern-matching support
@@ -122,6 +123,27 @@ String text = switch (value) {
     default              -> value.toString();
 };
 ```
+
+### Stream rows (large files)
+
+For large files, stream rows one at a time without loading the full workbook:
+
+```java
+import io.excel4j.core.io.SheetStreamReader;
+
+try (SheetStreamReader reader = Excel.streamReader(Path.of("large.xlsx"), 1)) {
+    reader.stream()
+        .skip(1)                          // skip header row
+        .filter(row -> row.rowNum() < 1000)
+        .forEach(row -> {
+            CellValue name  = row.cell(1); // column A (1-based)
+            CellValue score = row.cell(2); // column B
+            // process...
+        });
+}
+```
+
+`SheetStreamReader` is `AutoCloseable` — always use `try-with-resources`. Shared strings are loaded once upfront; worksheet XML is parsed row-by-row, one `Row` in memory at a time.
 
 ### Evaluate formulas
 
@@ -239,6 +261,13 @@ mvn clean test
 Requires Java 21. No `--enable-preview` features.
 
 ## Changelog
+
+### v1.1.0 — 2026-05-02
+
+**excel4j-core**
+- Added `Row` record: row number + column-indexed `CellValue` map with `cell(int col)` helper
+- Added `SheetStreamReader`: `AutoCloseable` row-by-row XLSX streaming via StAX — works with both standard OOXML `<row>` elements and excel4j's own write format
+- Added `Excel.streamReader(Path, int)` and `Excel.streamReader(String, int)` entry points
 
 ### v1.0.0 — 2026-05-01
 
