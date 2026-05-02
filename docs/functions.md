@@ -1,6 +1,6 @@
 # excel4j Formula Function Reference
 
-All 50 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
+All 62 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
 
 To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after setting up a `FormulaEvaluator`.
 
@@ -776,6 +776,180 @@ Averages cells in `average_range` where corresponding cells in `range` meet `cri
 
 ```
 =AVERAGEIF(A1:A10, ">0", B1:B10)  → average B where A > 0
+```
+
+---
+
+### HLOOKUP
+
+```
+HLOOKUP(lookup_value, table_range, row_index, [exact_match])
+```
+
+Searches the first row of `table_range` for `lookup_value` and returns the value in `row_index` (1-based). `exact_match` defaults to TRUE. Returns `#N/A` if not found.
+
+```
+=HLOOKUP("Sales", A1:D2, 2)        → value from row 2
+=HLOOKUP("Q1", A1:D10, 3, FALSE)   → approximate match, row 3
+```
+
+---
+
+### CHOOSE
+
+```
+CHOOSE(index_num, value1, [value2, ...])
+```
+
+Returns a value from a list based on `index_num` (1-based). Returns `#VALUE!` if index is out of range.
+
+```
+=CHOOSE(2, "a", "b", "c")    → "b"
+=CHOOSE(1, 10, 20, 30)       → 10
+```
+
+---
+
+### LARGE
+
+```
+LARGE(number1, [number2, ...], k)
+```
+
+Returns the k-th largest value from the numbers. `k` is the last argument. Returns `#NUM!` if k exceeds the count of values.
+
+```
+=LARGE(5, 3, 1, 4, 2, 1)     → 5 (1st largest)
+=LARGE(5, 3, 1, 4, 2, 3)     → 3 (3rd largest)
+```
+
+---
+
+### SMALL
+
+```
+SMALL(number1, [number2, ...], k)
+```
+
+Returns the k-th smallest value from the numbers. `k` is the last argument. Returns `#NUM!` if k exceeds the count of values.
+
+```
+=SMALL(5, 3, 1, 4, 2, 1)     → 1 (1st smallest)
+=SMALL(5, 3, 1, 4, 2, 3)     → 3 (3rd smallest)
+```
+
+---
+
+### RANK
+
+```
+RANK(number, number1, [number2, ...])
+```
+
+Returns the rank of `number` within the given list, in descending order (largest value = rank 1). Returns `#N/A` if the number is not found.
+
+```
+=RANK(3, 5, 3, 1)            → 2 (rank in descending order)
+=RANK(5, 5, 3, 1)            → 1 (largest)
+```
+
+---
+
+### MEDIAN
+
+```
+MEDIAN(number1, [number2, ...])
+```
+
+Returns the median (middle value) of the numbers. For even count, returns the average of the two middle values. Returns `#NUM!` if no numeric values.
+
+```
+=MEDIAN(1, 3, 2)             → 2
+=MEDIAN(1, 2, 3, 4)          → 2.5
+```
+
+---
+
+### MODE
+
+```
+MODE(number1, [number2, ...])
+```
+
+Returns the most frequently occurring value (mode). Returns `#N/A` if no mode exists.
+
+```
+=MODE(1, 2, 2, 3)            → 2 (appears twice)
+```
+
+---
+
+### STDEV
+
+```
+STDEV(number1, [number2, ...])
+```
+
+Returns the sample standard deviation of the numbers. Requires at least 2 numeric values. Returns `#DIV/0!` if fewer than 2 values.
+
+```
+=STDEV(2, 4, 4, 4, 5, 5, 7, 9)  → 2.138
+```
+
+---
+
+### VAR
+
+```
+VAR(number1, [number2, ...])
+```
+
+Returns the sample variance of the numbers. Requires at least 2 numeric values. Returns `#DIV/0!` if fewer than 2 values.
+
+```
+=VAR(2, 4, 4, 4, 5, 5, 7, 9)    → 4.571
+```
+
+---
+
+### COUNTIFS
+
+```
+COUNTIFS(range1, criteria1, [range2, criteria2, ...])
+```
+
+Counts cells that meet multiple criteria across multiple ranges. This is a multi-criteria version of COUNTIF. Currently aliases COUNTIF behavior.
+
+```
+=COUNTIFS(A1:A10, ">5", B1:B10, "East")
+```
+
+---
+
+### SUMIFS
+
+```
+SUMIFS(sum_range, range1, criteria1, [range2, criteria2, ...])
+```
+
+Sums cells that meet multiple criteria across multiple ranges. This is a multi-criteria version of SUMIF. Currently aliases SUMIF behavior.
+
+```
+=SUMIFS(C1:C10, A1:A10, ">0", B1:B10, "East")
+```
+
+---
+
+### AVERAGEIFS
+
+```
+AVERAGEIFS(average_range, range1, criteria1, [range2, criteria2, ...])
+```
+
+Averages cells that meet multiple criteria across multiple ranges. This is a multi-criteria version of AVERAGEIF. Currently aliases AVERAGEIF behavior.
+
+```
+=AVERAGEIFS(C1:C10, A1:A10, ">0", B1:B10, "East")
 ```
 
 ---

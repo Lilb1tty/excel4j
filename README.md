@@ -29,7 +29,7 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 - **Zero runtime dependencies** — JDK 21 only
 - **Read & write `.xlsx`** — StAX streaming, low memory footprint
 - **Streaming read API** — row-by-row `Stream<Row>` for large files without full workbook load
-- **Formula evaluation** — 50+ built-in functions with dependency graph and circular reference handling
+- **Formula evaluation** — 62 built-in functions with dependency graph and circular reference handling
 - **Template engine** — FlexCel-style `<#value>` and `<#band>` tags for report generation
 - **Type-safe cell values** — sealed `CellValue` interface with pattern-matching support
 - **Full JPMS** — `module-info.java` per module, strict compile-time boundaries
@@ -236,7 +236,7 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 ### v1 (Current)
 - [x] XLSX read/write with StAX streaming
 - [x] Type-safe cell model with styles
-- [x] Formula parser + evaluator (50+ functions)
+- [x] Formula parser + evaluator (62 functions)
 - [x] Template-based report generation
 - [x] Full JPMS module boundaries
 
@@ -269,6 +269,10 @@ Requires Java 21. No `--enable-preview` features.
 - Added `SheetStreamReader`: `AutoCloseable` row-by-row XLSX streaming via StAX — works with both standard OOXML `<row>` elements and excel4j's own write format
 - Added `Excel.streamReader(Path, int)` and `Excel.streamReader(String, int)` entry points
 
+**excel4j-formula**
+- Added 12 new lookup and statistical functions: HLOOKUP, CHOOSE, LARGE, SMALL, RANK, MEDIAN, MODE, STDEV, VAR, COUNTIFS, SUMIFS, AVERAGEIFS
+- Total functions now 62 (up from 50)
+
 ### v1.0.0 — 2026-05-01
 
 Initial release.
@@ -283,7 +287,7 @@ Initial release.
 
 **excel4j-formula**
 - Formula tokenizer, recursive-descent parser, AST evaluator
-- 50 built-in functions: math, logic, text, date/time, lookup/statistical
+- 62 built-in functions: math, logic, text, date/time, lookup/statistical
 - Circular reference detection — affected cells get `#CIRCULAR_REF`, rest continue
 - Extensible `FunctionRegistry` for custom functions
 - Full Excel error type propagation
