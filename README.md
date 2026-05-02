@@ -215,7 +215,7 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 
 ## Formula Functions (v1)
 
-95 built-in functions covering math, logic, text, date/time, and lookup/statistical:
+98 built-in functions covering math, logic, text, date/time, lookup/statistical, and arrays:
 
 **Math:** `SUM`, `PRODUCT`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `POWER`, `SQRT`, `COUNT`, `AVERAGE`, `CEILING`, `FLOOR`, `ROUNDUP`, `ROUNDDOWN`, `TRUNC`, `SIGN`, `LOG`, `LOG10`, `LN`, `EXP`, `PI`, `RAND`, `RANDBETWEEN`, `FACT`, `SUMPRODUCT`, `SUMSQ`
 
@@ -227,7 +227,11 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 
 **Lookup/Stat:** `VLOOKUP`, `INDEX`, `MATCH`, `COUNTA`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `HLOOKUP`, `CHOOSE`, `LARGE`, `SMALL`, `RANK`, `MEDIAN`, `MODE`, `STDEV`, `VAR`, `COUNTIFS`, `SUMIFS`, `AVERAGEIFS`
 
+**Array:** `SEQUENCE`, `UNIQUE`, `SORT`
+
 Custom functions are extensible via `FunctionRegistry`.
+
+**Array literals** — `{1,2;3,4}` syntax for inline arrays. Row separator `,`, column separator `;`. Arrays evaluate to `RangeValue` and work with any function that accepts ranges.
 
 See the full [Function Reference](docs/functions.md) for syntax, parameters, and examples.
 
@@ -236,21 +240,22 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 ### v1 (Current)
 - [x] XLSX read/write with StAX streaming
 - [x] Type-safe cell model with styles
-- [x] Formula parser + evaluator (95 functions)
+- [x] Formula parser + evaluator (98 functions)
+- [x] Array formulas — `{1,2;3,4}` literals + SEQUENCE, UNIQUE, SORT
 - [x] Template-based report generation
 - [x] Full JPMS module boundaries
 - [x] Streaming read API — `Stream<Row>` for large files
-- [x] Expanded function library (50 → 95)
+- [x] Expanded function library (50 → 98)
+- [x] Array formulas / dynamic arrays
 
 ### v2
 - [ ] PDF/image rendering (`excel4j-render`)
-- [ ] Array formulas / dynamic arrays
 - [ ] Charts
 - [ ] Pivot tables
 
 ## Documentation
 
-- [Function Reference](docs/functions.md) — all 95 formula functions with syntax and examples
+- [Function Reference](docs/functions.md) — all 98 formula functions with syntax and examples
 
 ## Build
 
@@ -261,6 +266,13 @@ mvn clean test
 Requires Java 21. No `--enable-preview` features.
 
 ## Changelog
+
+### v1.3.0 — 2026-05-02
+
+**excel4j-formula**
+- Array formula literals: `{1,2;3,4}` syntax with `,` (column) and `;` (row) separators
+- New array functions: `SEQUENCE`, `UNIQUE`, `SORT`
+- Total functions now 98 (up from 95)
 
 ### v1.2.0 — 2026-05-02
 

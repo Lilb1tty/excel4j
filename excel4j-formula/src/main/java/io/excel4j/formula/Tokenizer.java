@@ -173,6 +173,9 @@ public class Tokenizer {
             case ')' -> TokenType.RPAREN;
             case ',' -> TokenType.COMMA;
             case ':' -> TokenType.COLON;
+            case '{' -> TokenType.LBRACE;
+            case '}' -> TokenType.RBRACE;
+            case ';' -> TokenType.SEMICOLON;
             default -> throw new IllegalArgumentException("Unexpected char: " + c + " at " + start);
         };
         tokens.add(new Token(type, String.valueOf(c), start));

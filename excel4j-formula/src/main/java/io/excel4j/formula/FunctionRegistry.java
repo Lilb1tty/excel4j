@@ -25,5 +25,6 @@ public class FunctionRegistry {
     io.excel4j.formula.functions.TextFunctions.registerAll(this);
     io.excel4j.formula.functions.DateFunctions.registerAll(this);
     io.excel4j.formula.functions.LookupStatFunctions.registerAll(this);
+    io.excel4j.formula.functions.ArrayFunctions.registerAll(this);
   }
 }

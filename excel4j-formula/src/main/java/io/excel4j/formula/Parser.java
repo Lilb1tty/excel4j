@@ -132,6 +132,30 @@ public class Parser {
                 consume(TokenType.RPAREN, "Expected ')'");
                 return node;
             }
+            case LBRACE -> {
+                advance();
+                List<List<FormulaNode>> rows = new ArrayList<>();
+                List<FormulaNode> currentRow = new ArrayList<>();
+                if (current().type() != TokenType.RBRACE) {
+                    currentRow.add(parseExpression());
+                    while (current().type() != TokenType.RBRACE) {
+                        if (match(TokenType.COMMA)) {
+                            currentRow.add(parseExpression());
+                        } else if (match(TokenType.SEMICOLON)) {
+                            rows.add(currentRow);
+                            currentRow = new ArrayList<>();
+                            if (current().type() != TokenType.RBRACE) {
+                                currentRow.add(parseExpression());
+                            }
+                        } else {
+                            throw new FormulaParseException("Expected ',', ';', or '}' in array literal");
+                        }
+                    }
+                }
+                if (!currentRow.isEmpty()) rows.add(currentRow);
+                consume(TokenType.RBRACE, "Expected '}'");
+                return new ArrayLiteral(rows);
+            }
             default -> throw new FormulaParseException("Unexpected token: " + tok.text());
         }
     }

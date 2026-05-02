@@ -1,6 +1,6 @@
 # excel4j Formula Function Reference
 
-All 95 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
+All 98 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
 
 To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after setting up a `FormulaEvaluator`.
 
@@ -13,6 +13,7 @@ To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after set
 - [Text](#text)
 - [Date & Time](#date--time)
 - [Lookup & Reference](#lookup--reference)
+- [Array](#array)
 - [Custom Functions](#custom-functions)
 - [Error Types](#error-types)
 
@@ -1466,6 +1467,78 @@ Averages cells that meet multiple criteria across multiple ranges. This is a mul
 
 ```
 =AVERAGEIFS(C1:C10, A1:A10, ">0", B1:B10, "East")
+```
+
+---
+
+## Array
+
+### SEQUENCE
+
+```
+SEQUENCE(rows, [columns], [start], [step])
+```
+
+Returns a sequence of numbers in an array. Defaults: `columns=1`, `start=1`, `step=1`.
+
+```
+=SEQUENCE(3)        → {1;2;3}
+=SEQUENCE(2, 3)     → {1,2,3;4,5,6}
+=SEQUENCE(3, 1, 10, 5)  → {10;15;20}
+=SUM(SEQUENCE(3, 3))    → 45
+```
+
+---
+
+### UNIQUE
+
+```
+UNIQUE(array)
+```
+
+Returns unique values from a range or list, preserving first-occurrence order.
+
+```
+=UNIQUE(1, 2, 2, 3, 1)  → {1,2,3}
+=SUM(UNIQUE(A1:A5))
+```
+
+---
+
+### SORT
+
+```
+SORT(array, [sort_index], [sort_order])
+```
+
+Returns sorted values from a range or list. Currently supports ascending sort only.
+
+```
+=SORT(3, 1, 2)          → {1,2,3}
+=SORT(5, 2, 8, 1)       → {1,2,5,8}
+```
+
+---
+
+### Array Literals
+
+Inline array constants using braces:
+
+```
+{1, 2, 3}           → row vector
+{1; 2; 3}           → column vector
+{1, 2; 3, 4}        → 2×2 matrix
+```
+
+- `,` separates columns (same row)
+- `;` separates rows
+- Expressions are allowed: `{1+1, 2*3}`
+
+Array literals evaluate to `RangeValue` and work with any function that accepts ranges:
+
+```
+=SUM({1, 2, 3})     → 6
+=AVERAGE({4; 8})    → 6
 ```
 
 ---

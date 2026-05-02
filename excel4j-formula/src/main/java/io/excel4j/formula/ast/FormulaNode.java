@@ -4,4 +4,4 @@ public sealed interface FormulaNode
     permits NumberLiteral, TextLiteral, BoolLiteral, ErrorLiteral,
             CellRefNode, CellRangeNode,
             BinaryOp, UnaryOp,
-            FunctionCall, NameRef {}
+            FunctionCall, NameRef, ArrayLiteral {}

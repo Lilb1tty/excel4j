@@ -41,6 +41,7 @@ public class Evaluator {
                 yield result;
             }
             case CellRangeNode(var range) -> evaluateRange(range);
+            case ArrayLiteral(var rows) -> evaluateArrayLiteral(rows);
             case BinaryOp(var op, var left, var right) -> evaluateBinary(op, left, right);
             case UnaryOp(var op, var operand) -> evaluateUnary(op, operand);
             case FunctionCall(var name, var args) -> evaluateFunction(name, args);
@@ -55,6 +56,19 @@ public class Evaluator {
                 values.add(ctx.resolve(new CellRef(row, col)));
             }
         }
+        return new RangeValue(range, values);
+    }
+
+    private CellValue evaluateArrayLiteral(List<List<FormulaNode>> rows) {
+        List<CellValue> values = new ArrayList<>();
+        int rowCount = rows.size();
+        int colCount = rowCount > 0 ? rows.get(0).size() : 0;
+        for (List<FormulaNode> row : rows) {
+            for (FormulaNode node : row) {
+                values.add(evaluate(node));
+            }
+        }
+        CellRange range = new CellRange(new CellRef(1, 1), new CellRef(rowCount, colCount));
         return new RangeValue(range, values);
     }
 
