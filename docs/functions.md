@@ -14,6 +14,7 @@ To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after set
 - [Date & Time](#date--time)
 - [Lookup & Reference](#lookup--reference)
 - [Array](#array)
+- [Charts](#charts)
 - [Custom Functions](#custom-functions)
 - [Error Types](#error-types)
 
@@ -1540,6 +1541,34 @@ Array literals evaluate to `RangeValue` and work with any function that accepts 
 =SUM({1, 2, 3})     → 6
 =AVERAGE({4; 8})    → 6
 ```
+
+---
+
+## Charts
+
+Charts are attached to worksheets and written as part of the XLSX output.
+
+```java
+import io.excel4j.core.model.*;
+
+Worksheet sheet = wb.sheet("Sales");
+
+Chart chart = Chart.builder()
+    .title("Q1 Revenue")
+    .type(ChartType.BAR)
+    .categories(CellRange.of("A2", "A5"))
+    .addSeries("Revenue", CellRange.of("B2", "B5"))
+    .position(5, 1, 20, 10)
+    .build();
+
+sheet.addChart(chart);
+```
+
+**Chart types:** `BAR`, `LINE`, `PIE`
+
+**Position:** `position(fromRow, fromCol, toRow, toCol)` — cell coordinates for chart placement.
+
+Multiple charts per sheet supported.
 
 ---
 

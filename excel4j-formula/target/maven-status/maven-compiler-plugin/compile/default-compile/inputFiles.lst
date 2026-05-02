@@ -5,6 +5,7 @@
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/FunctionRegistry.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/Parser.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/Tokenizer.java
+/Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/ast/ArrayLiteral.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/ast/BinaryOp.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/ast/BoolLiteral.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/ast/CellRangeNode.java
@@ -20,6 +21,7 @@
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/ast/UnaryOperator.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/exception/FormulaEvalException.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/exception/FormulaParseException.java
+/Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/functions/ArrayFunctions.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/functions/DateFunctions.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/functions/LogicFunctions.java
 /Users/lilbitty/Developer/excel4j/excel4j-formula/src/main/java/io/excel4j/formula/functions/LookupStatFunctions.java

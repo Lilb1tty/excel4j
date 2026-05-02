@@ -3,7 +3,9 @@ io/excel4j/core/model/style/Border.class
 io/excel4j/core/io/SheetStreamReader.class
 io/excel4j/core/io/internal/DateConverter.class
 io/excel4j/core/exception/ExcelWriteException.class
+io/excel4j/core/io/OoxmlWriter$1.class
 io/excel4j/core/model/ErrorValue.class
+io/excel4j/core/model/ChartType.class
 io/excel4j/core/model/CellValue.class
 io/excel4j/core/model/DateTimeValue.class
 io/excel4j/core/model/ErrorType.class
@@ -20,6 +22,7 @@ io/excel4j/core/model/style/Font.class
 io/excel4j/core/model/style/NumberFormat.class
 io/excel4j/core/model/WorksheetName.class
 io/excel4j/core/Excel.class
+io/excel4j/core/model/Series.class
 io/excel4j/core/model/BooleanValue.class
 io/excel4j/core/model/style/Border$BorderStyle.class
 io/excel4j/core/model/CellRange.class
@@ -27,10 +30,12 @@ io/excel4j/core/model/TextValue.class
 io/excel4j/core/model/Cell.class
 io/excel4j/core/model/DateValue.class
 io/excel4j/core/model/style/Fill.class
+io/excel4j/core/model/Chart.class
 io/excel4j/core/model/BlankValue.class
 io/excel4j/core/model/style/CellStyle.class
 io/excel4j/core/model/CellRef.class
 io/excel4j/core/model/Worksheet.class
 io/excel4j/core/io/OoxmlReader.class
 io/excel4j/core/model/Workbook.class
+io/excel4j/core/model/Chart$Builder.class
 io/excel4j/core/exception/ExcelException.class

@@ -242,6 +242,7 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 - [x] Type-safe cell model with styles
 - [x] Formula parser + evaluator (98 functions)
 - [x] Array formulas — `{1,2;3,4}` literals + SEQUENCE, UNIQUE, SORT
+- [x] Charts — bar, line, pie (write path)
 - [x] Template-based report generation
 - [x] Full JPMS module boundaries
 - [x] Streaming read API — `Stream<Row>` for large files
@@ -250,7 +251,6 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 
 ### v2
 - [ ] PDF/image rendering (`excel4j-render`)
-- [ ] Charts
 - [ ] Pivot tables
 
 ## Documentation
@@ -266,6 +266,14 @@ mvn clean test
 Requires Java 21. No `--enable-preview` features.
 
 ## Changelog
+
+### v1.4.0 — 2026-05-02
+
+**excel4j-core**
+- Chart support (write path): bar, line, pie charts
+- `Chart` builder API with title, type, categories, series, and position
+- `Worksheet.addChart()` attaches charts to worksheets
+- Full OOXML chart/drawing/rels plumbing written to XLSX output
 
 ### v1.3.0 — 2026-05-02
 

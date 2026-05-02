@@ -23,6 +23,10 @@ public record CellRef(int row, int col) {
         return colToLetters(col) + row;
     }
 
+    public String toA1Absolute() {
+        return "$" + colToLetters(col) + "$" + row;
+    }
+
     private static String colToLetters(int col) {
         StringBuilder sb = new StringBuilder();
         int c = col;

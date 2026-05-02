@@ -25,14 +25,30 @@ public class OoxmlWriter {
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(path))) {
             SharedStringsTable sst = buildSharedStrings(workbook);
             StyleTable styleTable = buildStyleTable(workbook);
-            writeContentTypes(zip, workbook.sheets().size());
+            int totalCharts = 0;
+            for (Worksheet sheet : workbook.sheets()) {
+                totalCharts += sheet.charts().size();
+            }
+            writeContentTypes(zip, workbook, totalCharts);
             writeRels(zip);
             writeWorkbook(zip, workbook);
             writeWorkbookRels(zip, workbook.sheets().size());
             writeSharedStrings(zip, sst);
             writeStyles(zip, styleTable);
+            int chartIndex = 1;
             for (int i = 0; i < workbook.sheets().size(); i++) {
-                writeSheet(zip, workbook.sheets().get(i), i + 1, sst, styleTable);
+                Worksheet sheet = workbook.sheets().get(i);
+                int sheetNum = i + 1;
+                if (!sheet.charts().isEmpty()) {
+                    int startChartIndex = chartIndex;
+                    for (Chart chart : sheet.charts()) {
+                        writeChart(zip, sheet, chart, chartIndex++);
+                    }
+                    writeDrawing(zip, sheet, sheetNum);
+                    writeDrawingRels(zip, sheetNum, startChartIndex, sheet.charts().size());
+                    writeSheetRels(zip, sheetNum);
+                }
+                writeSheet(zip, sheet, sheetNum, sst, styleTable);
             }
         } catch (IOException | XMLStreamException e) {
             throw new ExcelWriteException("Failed to write XLSX: " + path, e);
@@ -60,8 +76,9 @@ public class OoxmlWriter {
         return st;
     }
 
-    private void writeContentTypes(ZipOutputStream zip, int sheetCount)
+    private void writeContentTypes(ZipOutputStream zip, Workbook workbook, int totalCharts)
             throws IOException, XMLStreamException {
+        int sheetCount = workbook.sheets().size();
         zip.putNextEntry(new ZipEntry("[Content_Types].xml"));
         XMLStreamWriter w = startXml(zip);
         w.writeStartDocument("UTF-8", "1.0");
@@ -78,6 +95,16 @@ public class OoxmlWriter {
         for (int i = 1; i <= sheetCount; i++) {
             writeOverride(w, "/xl/worksheets/sheet" + i + ".xml",
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml");
+        }
+        for (int i = 1; i <= totalCharts; i++) {
+            writeOverride(w, "/xl/charts/chart" + i + ".xml",
+                "application/vnd.openxmlformats-officedocument.drawingml.chart+xml");
+        }
+        for (int i = 1; i <= sheetCount; i++) {
+            if (!workbook.sheets().get(i - 1).charts().isEmpty()) {
+                writeOverride(w, "/xl/drawings/drawing" + i + ".xml",
+                    "application/vnd.openxmlformats-officedocument.drawingml.spreadsheetDrawing+xml");
+            }
         }
         w.writeEndElement();
         w.writeEndDocument();
@@ -272,6 +299,11 @@ public class OoxmlWriter {
         w.writeStartElement("worksheet");
         w.writeDefaultNamespace(
             "http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+        boolean hasCharts = !sheet.charts().isEmpty();
+        String rNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        if (hasCharts) {
+            w.writeNamespace("r", rNs);
+        }
         w.writeStartElement("sheetData");
 
         Map<CellRef, Cell> cells = sheet.cells();
@@ -287,6 +319,10 @@ public class OoxmlWriter {
             });
 
         w.writeEndElement(); // sheetData
+        if (hasCharts) {
+            w.writeEmptyElement("drawing");
+            w.writeAttribute(rNs, "id", "rId1");
+        }
         w.writeEndElement(); // worksheet
         w.writeEndDocument();
         w.flush();
@@ -352,6 +388,315 @@ public class OoxmlWriter {
         }
 
         w.writeEndElement(); // c
+    }
+
+    private void writeChart(ZipOutputStream zip, Worksheet sheet, Chart chart, int chartIndex)
+            throws IOException, XMLStreamException {
+        zip.putNextEntry(new ZipEntry("xl/charts/chart" + chartIndex + ".xml"));
+        XMLStreamWriter w = startXml(zip);
+        w.writeStartDocument("UTF-8", "1.0");
+        String cNs = "http://schemas.openxmlformats.org/drawingml/2006/chart";
+        String aNs = "http://schemas.openxmlformats.org/drawingml/2006/main";
+        String rNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        w.writeStartElement("c:chartSpace");
+        w.writeDefaultNamespace(cNs);
+        w.writeNamespace("a", aNs);
+        w.writeNamespace("r", rNs);
+        w.writeStartElement("c:chart");
+        if (chart.title() != null && !chart.title().isEmpty()) {
+            w.writeStartElement("c:title");
+            w.writeStartElement("c:tx");
+            w.writeStartElement("c:rich");
+            w.writeStartElement("a:bodyPr");
+            w.writeEndElement();
+            w.writeStartElement("a:lstStyle");
+            w.writeEndElement();
+            w.writeStartElement("a:p");
+            w.writeStartElement("a:r");
+            w.writeStartElement("a:t");
+            w.writeCharacters(chart.title());
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+        }
+        w.writeStartElement("c:plotArea");
+        switch (chart.type()) {
+            case BAR -> writeBarChart(w, sheet, chart);
+            case LINE -> writeLineChart(w, sheet, chart);
+            case PIE -> writePieChart(w, sheet, chart);
+        }
+        if (chart.type() != ChartType.PIE) {
+            writeCatAx(w);
+            writeValAx(w);
+        }
+        w.writeEndElement(); // plotArea
+        if (chart.type() != ChartType.PIE) {
+            w.writeStartElement("c:legend");
+            w.writeEmptyElement("c:legendPos");
+            w.writeAttribute("val", "b");
+            w.writeEmptyElement("c:overlay");
+            w.writeAttribute("val", "0");
+            w.writeEndElement();
+        }
+        w.writeEmptyElement("c:plotVisOnly");
+        w.writeAttribute("val", "1");
+        w.writeEndElement(); // chart
+        w.writeEndElement(); // chartSpace
+        w.writeEndDocument();
+        w.flush();
+        zip.closeEntry();
+    }
+
+    private void writeBarChart(XMLStreamWriter w, Worksheet sheet, Chart chart) throws XMLStreamException {
+        w.writeStartElement("c:barChart");
+        w.writeEmptyElement("c:barDir");
+        w.writeAttribute("val", "col");
+        w.writeEmptyElement("c:grouping");
+        w.writeAttribute("val", "clustered");
+        writeSeries(w, sheet, chart);
+        w.writeEmptyElement("c:axId");
+        w.writeAttribute("val", "48650112");
+        w.writeEmptyElement("c:axId");
+        w.writeAttribute("val", "48672768");
+        w.writeEndElement();
+    }
+
+    private void writeLineChart(XMLStreamWriter w, Worksheet sheet, Chart chart) throws XMLStreamException {
+        w.writeStartElement("c:lineChart");
+        w.writeEmptyElement("c:grouping");
+        w.writeAttribute("val", "standard");
+        writeSeries(w, sheet, chart);
+        w.writeEmptyElement("c:axId");
+        w.writeAttribute("val", "48650112");
+        w.writeEmptyElement("c:axId");
+        w.writeAttribute("val", "48672768");
+        w.writeEndElement();
+    }
+
+    private void writePieChart(XMLStreamWriter w, Worksheet sheet, Chart chart) throws XMLStreamException {
+        w.writeStartElement("c:pieChart");
+        writeSeries(w, sheet, chart);
+        w.writeEmptyElement("c:firstSliceAng");
+        w.writeAttribute("val", "0");
+        w.writeEndElement();
+    }
+
+    private void writeSeries(XMLStreamWriter w, Worksheet sheet, Chart chart) throws XMLStreamException {
+        String sheetName = sheet.name().value();
+        String catRef = chart.categories() != null
+            ? "'" + sheetName + "'!" + chart.categories().first().toA1Absolute() + ":" + chart.categories().last().toA1Absolute()
+            : null;
+        int idx = 0;
+        for (Series s : chart.series()) {
+            w.writeStartElement("c:ser");
+            w.writeEmptyElement("c:idx");
+            w.writeAttribute("val", String.valueOf(idx));
+            w.writeEmptyElement("c:order");
+            w.writeAttribute("val", String.valueOf(idx));
+            w.writeStartElement("c:tx");
+            w.writeStartElement("c:strRef");
+            w.writeStartElement("c:f");
+            w.writeCharacters("'" + sheetName + "'!" + s.values().first().toA1Absolute());
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            if (catRef != null) {
+                w.writeStartElement("c:cat");
+                w.writeStartElement("c:strRef");
+                w.writeStartElement("c:f");
+                w.writeCharacters(catRef);
+                w.writeEndElement();
+                w.writeEndElement();
+                w.writeEndElement();
+            }
+            w.writeStartElement("c:val");
+            w.writeStartElement("c:numRef");
+            w.writeStartElement("c:f");
+            w.writeCharacters("'" + sheetName + "'!" + s.values().first().toA1Absolute() + ":" + s.values().last().toA1Absolute());
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            idx++;
+        }
+    }
+
+    private void writeCatAx(XMLStreamWriter w) throws XMLStreamException {
+        w.writeStartElement("c:catAx");
+        w.writeEmptyElement("c:axId");
+        w.writeAttribute("val", "48650112");
+        w.writeStartElement("c:scaling");
+        w.writeEmptyElement("c:orientation");
+        w.writeAttribute("val", "minMax");
+        w.writeEndElement();
+        w.writeEmptyElement("c:delete");
+        w.writeAttribute("val", "0");
+        w.writeEmptyElement("c:axPos");
+        w.writeAttribute("val", "b");
+        w.writeEmptyElement("c:tickLblPos");
+        w.writeAttribute("val", "nextTo");
+        w.writeEmptyElement("c:crossAx");
+        w.writeAttribute("val", "48672768");
+        w.writeEmptyElement("c:crosses");
+        w.writeAttribute("val", "autoZero");
+        w.writeEmptyElement("c:auto");
+        w.writeAttribute("val", "1");
+        w.writeEmptyElement("c:lblAlgn");
+        w.writeAttribute("val", "ctr");
+        w.writeEmptyElement("c:lblOffset");
+        w.writeAttribute("val", "100");
+        w.writeEndElement();
+    }
+
+    private void writeValAx(XMLStreamWriter w) throws XMLStreamException {
+        w.writeStartElement("c:valAx");
+        w.writeEmptyElement("c:axId");
+        w.writeAttribute("val", "48672768");
+        w.writeStartElement("c:scaling");
+        w.writeEmptyElement("c:orientation");
+        w.writeAttribute("val", "minMax");
+        w.writeEndElement();
+        w.writeEmptyElement("c:delete");
+        w.writeAttribute("val", "0");
+        w.writeEmptyElement("c:axPos");
+        w.writeAttribute("val", "l");
+        w.writeEmptyElement("c:majorGridlines");
+        w.writeEmptyElement("c:tickLblPos");
+        w.writeAttribute("val", "nextTo");
+        w.writeEmptyElement("c:crossAx");
+        w.writeAttribute("val", "48650112");
+        w.writeEmptyElement("c:crosses");
+        w.writeAttribute("val", "autoZero");
+        w.writeEmptyElement("c:crossBetween");
+        w.writeAttribute("val", "between");
+        w.writeEndElement();
+    }
+
+    private void writeDrawing(ZipOutputStream zip, Worksheet sheet, int sheetIndex)
+            throws IOException, XMLStreamException {
+        zip.putNextEntry(new ZipEntry("xl/drawings/drawing" + sheetIndex + ".xml"));
+        XMLStreamWriter w = startXml(zip);
+        w.writeStartDocument("UTF-8", "1.0");
+        String xdrNs = "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing";
+        String aNs = "http://schemas.openxmlformats.org/drawingml/2006/main";
+        String rNs = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+        String cNs = "http://schemas.openxmlformats.org/drawingml/2006/chart";
+        w.writeStartElement("xdr:wsDr");
+        w.writeDefaultNamespace(xdrNs);
+        w.writeNamespace("a", aNs);
+        w.writeNamespace("r", rNs);
+        w.writeNamespace("c", cNs);
+        int chartIdx = 1;
+        for (Chart chart : sheet.charts()) {
+            w.writeStartElement("xdr:twoCellAnchor");
+            w.writeAttribute("editAs", "oneCell");
+            w.writeStartElement("xdr:from");
+            w.writeStartElement("xdr:col");
+            w.writeCharacters(String.valueOf(chart.fromCol() - 1));
+            w.writeEndElement();
+            w.writeStartElement("xdr:colOff");
+            w.writeCharacters("0");
+            w.writeEndElement();
+            w.writeStartElement("xdr:row");
+            w.writeCharacters(String.valueOf(chart.fromRow() - 1));
+            w.writeEndElement();
+            w.writeStartElement("xdr:rowOff");
+            w.writeCharacters("0");
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeStartElement("xdr:to");
+            w.writeStartElement("xdr:col");
+            w.writeCharacters(String.valueOf(chart.toCol() - 1));
+            w.writeEndElement();
+            w.writeStartElement("xdr:colOff");
+            w.writeCharacters("0");
+            w.writeEndElement();
+            w.writeStartElement("xdr:row");
+            w.writeCharacters(String.valueOf(chart.toRow() - 1));
+            w.writeEndElement();
+            w.writeStartElement("xdr:rowOff");
+            w.writeCharacters("0");
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeStartElement("xdr:graphicFrame");
+            w.writeAttribute("macro", "");
+            w.writeStartElement("xdr:nvGraphicFramePr");
+            w.writeStartElement("xdr:cNvPr");
+            w.writeAttribute("id", String.valueOf(chartIdx + 1));
+            w.writeAttribute("name", "Chart " + chartIdx);
+            w.writeEndElement();
+            w.writeStartElement("xdr:cNvGraphicFramePr");
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeStartElement("xdr:xfrm");
+            w.writeStartElement("a:off");
+            w.writeAttribute("x", "0");
+            w.writeAttribute("y", "0");
+            w.writeEndElement();
+            w.writeStartElement("a:ext");
+            w.writeAttribute("cx", "0");
+            w.writeAttribute("cy", "0");
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeStartElement("a:graphic");
+            w.writeStartElement("a:graphicData");
+            w.writeAttribute("uri", "http://schemas.openxmlformats.org/drawingml/2006/chart");
+            w.writeStartElement("c", "chart", cNs);
+            w.writeAttribute(rNs, "id", "rId" + chartIdx);
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeEndElement();
+            w.writeStartElement("xdr:clientData");
+            w.writeEndElement();
+            w.writeEndElement();
+            chartIdx++;
+        }
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.flush();
+        zip.closeEntry();
+    }
+
+    private void writeDrawingRels(ZipOutputStream zip, int sheetIndex, int startChartIndex, int chartCount)
+            throws IOException, XMLStreamException {
+        zip.putNextEntry(new ZipEntry("xl/drawings/_rels/drawing" + sheetIndex + ".xml.rels"));
+        XMLStreamWriter w = startXml(zip);
+        w.writeStartDocument("UTF-8", "1.0");
+        w.writeStartElement("Relationships");
+        w.writeDefaultNamespace("http://schemas.openxmlformats.org/package/2006/relationships");
+        for (int i = 0; i < chartCount; i++) {
+            w.writeEmptyElement("Relationship");
+            w.writeAttribute("Id", "rId" + (i + 1));
+            w.writeAttribute("Type",
+                "http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart");
+            w.writeAttribute("Target", "../charts/chart" + (startChartIndex + i) + ".xml");
+        }
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.flush();
+        zip.closeEntry();
+    }
+
+    private void writeSheetRels(ZipOutputStream zip, int sheetIndex)
+            throws IOException, XMLStreamException {
+        zip.putNextEntry(new ZipEntry("xl/worksheets/_rels/sheet" + sheetIndex + ".xml.rels"));
+        XMLStreamWriter w = startXml(zip);
+        w.writeStartDocument("UTF-8", "1.0");
+        w.writeStartElement("Relationships");
+        w.writeDefaultNamespace("http://schemas.openxmlformats.org/package/2006/relationships");
+        w.writeEmptyElement("Relationship");
+        w.writeAttribute("Id", "rId1");
+        w.writeAttribute("Type",
+            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing");
+        w.writeAttribute("Target", "../drawings/drawing" + sheetIndex + ".xml");
+        w.writeEndElement();
+        w.writeEndDocument();
+        w.flush();
+        zip.closeEntry();
     }
 
     private String formatDouble(double d) {
