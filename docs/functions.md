@@ -1,6 +1,6 @@
 # excel4j Formula Function Reference
 
-All 62 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
+All 68 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
 
 To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after setting up a `FormulaEvaluator`.
 
@@ -666,6 +666,106 @@ Returns the day of the week as a number. `return_type` controls numbering:
 ```
 =WEEKDAY(DATE(2024, 1, 1))    → 2 (Monday, return_type 1)
 =WEEKDAY(DATE(2024, 1, 1), 2) → 1 (Monday, return_type 2)
+```
+
+---
+
+### EDATE
+
+```
+EDATE(start_date, months)
+```
+
+Returns a date that is `months` months before or after `start_date`. Positive `months` adds months; negative subtracts.
+
+```
+=EDATE(DATE(2024, 1, 15), 2)   → 2024-03-15
+=EDATE(DATE(2024, 1, 15), -1)  → 2023-12-15
+```
+
+---
+
+### EOMONTH
+
+```
+EOMONTH(start_date, months)
+```
+
+Returns the last day of the month that is `months` months away from `start_date`. `months=0` returns the last day of the current month.
+
+```
+=EOMONTH(DATE(2024, 1, 10), 0)  → 2024-01-31
+=EOMONTH(DATE(2024, 1, 10), 1)  → 2024-02-29 (leap year)
+```
+
+---
+
+### DAYS
+
+```
+DAYS(end_date, start_date)
+```
+
+Returns the number of days between `end_date` and `start_date`. Negative if `end_date` is before `start_date`.
+
+```
+=DAYS(DATE(2024, 1, 10), DATE(2024, 1, 1))  → 9
+=DAYS(DATE(2024, 1, 1), DATE(2024, 1, 10))  → -9
+```
+
+---
+
+### TIME
+
+```
+TIME(hour, minute, second)
+```
+
+Returns a time value (stored as `DateTimeValue` with date 1899-12-31). Hours wrap at 24; minutes and seconds at 60.
+
+```
+=TIME(14, 30, 0)   → 14:30:00
+=TIME(25, 0, 0)    → 01:00:00 (wraps)
+```
+
+---
+
+### DATEDIF
+
+```
+DATEDIF(start_date, end_date, unit)
+```
+
+Returns the difference between `start_date` and `end_date` in the specified `unit`. Common units:
+
+| unit | Meaning |
+|------|---------|
+| "Y" | Complete years |
+| "M" | Complete months |
+| "D" | Days |
+| "YM" | Months, ignoring years |
+| "YD" | Days, ignoring years |
+| "MD" | Days, ignoring months and years |
+
+```
+=DATEDIF(DATE(2020, 1, 1), DATE(2024, 6, 15), "Y")  → 4
+=DATEDIF(DATE(2020, 1, 1), DATE(2024, 6, 15), "M")  → 53
+=DATEDIF(DATE(2020, 1, 1), DATE(2024, 6, 15), "D")  → 1622
+```
+
+---
+
+### ISOWEEKNUM
+
+```
+ISOWEEKNUM(date)
+```
+
+Returns the ISO 8601 week number (1–53) for the given date. Week 1 is the first week with a Thursday.
+
+```
+=ISOWEEKNUM(DATE(2024, 1, 1))   → 1
+=ISOWEEKNUM(DATE(2024, 12, 31)) → 1
 ```
 
 ---

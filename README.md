@@ -29,7 +29,7 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 - **Zero runtime dependencies** — JDK 21 only
 - **Read & write `.xlsx`** — StAX streaming, low memory footprint
 - **Streaming read API** — row-by-row `Stream<Row>` for large files without full workbook load
-- **Formula evaluation** — 62 built-in functions with dependency graph and circular reference handling
+- **Formula evaluation** — 68 built-in functions with dependency graph and circular reference handling
 - **Template engine** — FlexCel-style `<#value>` and `<#band>` tags for report generation
 - **Type-safe cell values** — sealed `CellValue` interface with pattern-matching support
 - **Full JPMS** — `module-info.java` per module, strict compile-time boundaries
@@ -215,7 +215,7 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 
 ## Formula Functions (v1)
 
-50 built-in functions covering math, logic, text, date/time, and lookup/statistical:
+68 built-in functions covering math, logic, text, date/time, and lookup/statistical:
 
 **Math:** `SUM`, `PRODUCT`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `POWER`, `SQRT`, `COUNT`, `AVERAGE`
 
@@ -223,7 +223,7 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 
 **Text:** `LEFT`, `RIGHT`, `MID`, `LEN`, `TRIM`, `CONCATENATE`, `UPPER`, `LOWER`, `REPT`, `FIND`, `SUBSTITUTE`
 
-**Date/Time:** `DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`, `HOUR`, `MINUTE`, `SECOND`, `WEEKDAY`
+**Date/Time:** `DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`, `HOUR`, `MINUTE`, `SECOND`, `WEEKDAY`, `EDATE`, `EOMONTH`, `DAYS`, `TIME`, `DATEDIF`, `ISOWEEKNUM`
 
 **Lookup/Stat:** `VLOOKUP`, `INDEX`, `MATCH`, `COUNTA`, `COUNTIF`, `SUMIF`, `AVERAGEIF`
 
@@ -236,7 +236,7 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 ### v1 (Current)
 - [x] XLSX read/write with StAX streaming
 - [x] Type-safe cell model with styles
-- [x] Formula parser + evaluator (62 functions)
+- [x] Formula parser + evaluator (68 functions)
 - [x] Template-based report generation
 - [x] Full JPMS module boundaries
 
@@ -250,7 +250,7 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 
 ## Documentation
 
-- [Function Reference](docs/functions.md) — all 50 formula functions with syntax and examples
+- [Function Reference](docs/functions.md) — all 68 formula functions with syntax and examples
 
 ## Build
 
@@ -271,7 +271,8 @@ Requires Java 21. No `--enable-preview` features.
 
 **excel4j-formula**
 - Added 12 new lookup and statistical functions: HLOOKUP, CHOOSE, LARGE, SMALL, RANK, MEDIAN, MODE, STDEV, VAR, COUNTIFS, SUMIFS, AVERAGEIFS
-- Total functions now 62 (up from 50)
+- Added 6 new date/time functions: EDATE, EOMONTH, DAYS, TIME, DATEDIF, ISOWEEKNUM
+- Total functions now 68 (up from 50)
 
 ### v1.0.0 — 2026-05-01
 
