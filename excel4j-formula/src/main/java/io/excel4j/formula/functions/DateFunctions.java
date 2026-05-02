@@ -8,6 +8,9 @@ import io.excel4j.formula.FunctionRegistry;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.IsoFields;
 import java.util.List;
 
 public final class DateFunctions {
@@ -25,6 +28,12 @@ public final class DateFunctions {
         reg.register("MINUTE", DateFunctions::minute);
         reg.register("SECOND", DateFunctions::second);
         reg.register("WEEKDAY", DateFunctions::weekday);
+        reg.register("EDATE", DateFunctions::edate);
+        reg.register("EOMONTH", DateFunctions::eomonth);
+        reg.register("DAYS", DateFunctions::days);
+        reg.register("TIME", DateFunctions::time);
+        reg.register("DATEDIF", DateFunctions::datedif);
+        reg.register("ISOWEEKNUM", DateFunctions::isoWeekNum);
     }
 
     static CellValue date(List<CellValue> args, EvalContext ctx) {
@@ -109,5 +118,60 @@ public final class DateFunctions {
             case NumberValue(var n) -> DateConverter.toLocalDateTime(n);
             default -> null;
         };
+    }
+
+    static CellValue edate(List<CellValue> args, EvalContext ctx) {
+        LocalDate d = toLocalDate(args.get(0));
+        if (d == null) return new ErrorValue(ErrorType.VALUE);
+        int months = (int) Evaluator.toNumber(args.get(1));
+        return new DateValue(d.plusMonths(months));
+    }
+
+    static CellValue eomonth(List<CellValue> args, EvalContext ctx) {
+        LocalDate d = toLocalDate(args.get(0));
+        if (d == null) return new ErrorValue(ErrorType.VALUE);
+        int months = (int) Evaluator.toNumber(args.get(1));
+        LocalDate target = d.plusMonths(months);
+        return new DateValue(target.withDayOfMonth(target.lengthOfMonth()));
+    }
+
+    static CellValue days(List<CellValue> args, EvalContext ctx) {
+        LocalDate end = toLocalDate(args.get(0));
+        LocalDate start = toLocalDate(args.get(1));
+        if (end == null || start == null) return new ErrorValue(ErrorType.VALUE);
+        return new NumberValue(start.until(end, ChronoUnit.DAYS));
+    }
+
+    static CellValue time(List<CellValue> args, EvalContext ctx) {
+        int hour = (int) Evaluator.toNumber(args.get(0));
+        int min = (int) Evaluator.toNumber(args.get(1));
+        int sec = (int) Evaluator.toNumber(args.get(2));
+        return new DateTimeValue(
+            LocalDate.of(1899, 12, 31).atTime(LocalTime.of(hour % 24, min % 60, sec % 60))
+        );
+    }
+
+    static CellValue datedif(List<CellValue> args, EvalContext ctx) {
+        LocalDate start = toLocalDate(args.get(0));
+        LocalDate end = toLocalDate(args.get(1));
+        String unit = Evaluator.toText(args.get(2)).toUpperCase();
+        if (start == null || end == null) return new ErrorValue(ErrorType.VALUE);
+        return switch (unit) {
+            case "Y" -> new NumberValue(start.until(end, ChronoUnit.YEARS));
+            case "M" -> new NumberValue(start.until(end, ChronoUnit.MONTHS));
+            case "D" -> new NumberValue(start.until(end, ChronoUnit.DAYS));
+            case "MD" -> new NumberValue(
+                start.withYear(end.getYear()).withMonth(end.getMonthValue()).until(end, ChronoUnit.DAYS)
+            );
+            case "YM" -> new NumberValue((end.getMonthValue() - start.getMonthValue() + 12) % 12);
+            case "YD" -> new NumberValue(start.withYear(end.getYear()).until(end, ChronoUnit.DAYS));
+            default -> new ErrorValue(ErrorType.VALUE);
+        };
+    }
+
+    static CellValue isoWeekNum(List<CellValue> args, EvalContext ctx) {
+        LocalDate d = toLocalDate(args.get(0));
+        if (d == null) return new ErrorValue(ErrorType.VALUE);
+        return new NumberValue(d.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR));
     }
 }
