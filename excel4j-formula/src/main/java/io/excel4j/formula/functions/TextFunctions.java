@@ -23,6 +23,13 @@ public final class TextFunctions {
         reg.register("REPT", TextFunctions::rept);
         reg.register("FIND", TextFunctions::find);
         reg.register("SUBSTITUTE", TextFunctions::substitute);
+        reg.register("EXACT", TextFunctions::exact);
+        reg.register("SEARCH", TextFunctions::search);
+        reg.register("REPLACE", TextFunctions::replace);
+        reg.register("CHAR", TextFunctions::charFunc);
+        reg.register("CODE", TextFunctions::code);
+        reg.register("VALUE", TextFunctions::value);
+        reg.register("T", TextFunctions::t);
     }
 
     static CellValue left(List<CellValue> args, EvalContext ctx) {
@@ -104,5 +111,53 @@ public final class TextFunctions {
             return new TextValue(text);
         }
         return new TextValue(text.replace(oldText, newText));
+    }
+
+    static CellValue exact(List<CellValue> args, EvalContext ctx) {
+        return new BooleanValue(Evaluator.toText(args.get(0)).equals(Evaluator.toText(args.get(1))));
+    }
+
+    static CellValue search(List<CellValue> args, EvalContext ctx) {
+        String find = Evaluator.toText(args.get(0)).toLowerCase();
+        String within = Evaluator.toText(args.get(1)).toLowerCase();
+        int start = args.size() > 2 ? (int) Evaluator.toNumber(args.get(2)) - 1 : 0;
+        int idx = within.indexOf(find, start);
+        if (idx < 0) return new ErrorValue(ErrorType.VALUE);
+        return new NumberValue(idx + 1);
+    }
+
+    static CellValue replace(List<CellValue> args, EvalContext ctx) {
+        String text = Evaluator.toText(args.get(0));
+        int start = (int) Evaluator.toNumber(args.get(1)) - 1;
+        int count = (int) Evaluator.toNumber(args.get(2));
+        String newText = Evaluator.toText(args.get(3));
+        if (start < 0) start = 0;
+        int end = Math.min(start + count, text.length());
+        return new TextValue(text.substring(0, start) + newText + text.substring(end));
+    }
+
+    static CellValue charFunc(List<CellValue> args, EvalContext ctx) {
+        int code = (int) Evaluator.toNumber(args.get(0));
+        return new TextValue(String.valueOf((char) code));
+    }
+
+    static CellValue code(List<CellValue> args, EvalContext ctx) {
+        String s = Evaluator.toText(args.get(0));
+        if (s.isEmpty()) return new ErrorValue(ErrorType.VALUE);
+        return new NumberValue(s.charAt(0));
+    }
+
+    static CellValue value(List<CellValue> args, EvalContext ctx) {
+        String s = Evaluator.toText(args.get(0)).trim();
+        try {
+            return new NumberValue(Double.parseDouble(s));
+        } catch (NumberFormatException e) {
+            return new ErrorValue(ErrorType.VALUE);
+        }
+    }
+
+    static CellValue t(List<CellValue> args, EvalContext ctx) {
+        CellValue v = args.get(0);
+        return v instanceof TextValue ? v : new TextValue("");
     }
 }
