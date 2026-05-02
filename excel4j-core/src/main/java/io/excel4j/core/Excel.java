@@ -1,10 +1,16 @@
 package io.excel4j.core;
 
+import io.excel4j.core.exception.ExcelReadException;
 import io.excel4j.core.io.OoxmlReader;
 import io.excel4j.core.io.OoxmlWriter;
+import io.excel4j.core.io.SheetStreamReader;
+import io.excel4j.core.io.internal.SharedStringsTable;
 import io.excel4j.core.model.Workbook;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.zip.ZipFile;
 
 public final class Excel {
 
@@ -28,5 +34,24 @@ public final class Excel {
 
     public static void write(Workbook workbook, String path) {
         write(workbook, Path.of(path));
+    }
+
+    public static SheetStreamReader streamReader(Path path, int sheetIndex) {
+        try {
+            ZipFile zip = new ZipFile(path.toFile());
+            List<String> sharedStrings = SharedStringsTable.read(zip);
+            var entry = zip.getEntry("xl/worksheets/sheet" + sheetIndex + ".xml");
+            if (entry == null) {
+                zip.close();
+                throw new ExcelReadException("Sheet not found at index " + sheetIndex);
+            }
+            return new SheetStreamReader(zip, sharedStrings, entry);
+        } catch (IOException | javax.xml.stream.XMLStreamException e) {
+            throw new ExcelReadException("Failed to open XLSX for streaming: " + path, e);
+        }
+    }
+
+    public static SheetStreamReader streamReader(String path, int sheetIndex) {
+        return streamReader(Path.of(path), sheetIndex);
     }
 }
