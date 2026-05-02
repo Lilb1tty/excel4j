@@ -1,6 +1,6 @@
 # excel4j Formula Function Reference
 
-All 68 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
+All 95 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
 
 To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after setting up a `FormulaEvaluator`.
 
@@ -202,6 +202,254 @@ Returns the square root of a non-negative number. Returns `#NUM!` for negative i
 
 ---
 
+### CEILING
+
+```
+CEILING(number, significance)
+```
+
+Rounds a number up to the nearest multiple of `significance`.
+
+```
+=CEILING(2.3, 1)    → 3
+=CEILING(2.3, 0.5)  → 2.5
+=CEILING(6.7, 2)    → 8
+```
+
+---
+
+### FLOOR
+
+```
+FLOOR(number, significance)
+```
+
+Rounds a number down to the nearest multiple of `significance`.
+
+```
+=FLOOR(2.7, 1)    → 2
+=FLOOR(2.7, 0.5)  → 2.5
+=FLOOR(6.7, 2)    → 6
+```
+
+---
+
+### ROUNDUP
+
+```
+ROUNDUP(number, num_digits)
+```
+
+Rounds a number away from zero to the given number of decimal places.
+
+```
+=ROUNDUP(2.1, 0)   → 3
+=ROUNDUP(-2.1, 0)  → -3
+=ROUNDUP(2.14, 1)  → 2.2
+```
+
+---
+
+### ROUNDDOWN
+
+```
+ROUNDDOWN(number, num_digits)
+```
+
+Rounds a number toward zero to the given number of decimal places.
+
+```
+=ROUNDDOWN(2.9, 0)   → 2
+=ROUNDDOWN(-2.9, 0)  → -2
+=ROUNDDOWN(2.99, 1)  → 2.9
+```
+
+---
+
+### TRUNC
+
+```
+TRUNC(number, [num_digits])
+```
+
+Truncates a number to the given number of decimal places (default 0) by removing trailing digits without rounding.
+
+```
+=TRUNC(3.7)       → 3
+=TRUNC(-3.7)      → -3
+=TRUNC(3.789, 2)  → 3.78
+```
+
+---
+
+### SIGN
+
+```
+SIGN(number)
+```
+
+Returns `1` if the number is positive, `0` if zero, `-1` if negative.
+
+```
+=SIGN(5)   → 1
+=SIGN(0)   → 0
+=SIGN(-5)  → -1
+```
+
+---
+
+### LOG
+
+```
+LOG(number, [base])
+```
+
+Returns the logarithm of a number to the specified base. Default base is 10.
+
+```
+=LOG(100, 10)  → 2
+=LOG(10)       → 1
+=LOG(8, 2)     → 3
+```
+
+---
+
+### LOG10
+
+```
+LOG10(number)
+```
+
+Returns the base-10 logarithm of a number.
+
+```
+=LOG10(1000)  → 3
+=LOG10(100)   → 2
+```
+
+---
+
+### LN
+
+```
+LN(number)
+```
+
+Returns the natural (base-e) logarithm of a number.
+
+```
+=LN(EXP(1))  → 1
+=LN(1)       → 0
+```
+
+---
+
+### EXP
+
+```
+EXP(number)
+```
+
+Returns `e` raised to the power of `number`.
+
+```
+=EXP(1)  → 2.71828...
+=EXP(0)  → 1
+```
+
+---
+
+### PI
+
+```
+PI()
+```
+
+Returns the value of π (3.14159...).
+
+```
+=PI()              → 3.14159265358979...
+=2 * PI() * A1     (circumference where A1 is radius)
+```
+
+---
+
+### RAND
+
+```
+RAND()
+```
+
+Returns a random decimal number between 0 (inclusive) and 1 (exclusive). Recalculates on every evaluation.
+
+```
+=RAND()          → 0.47291...  (example)
+=RAND() * 100    → random 0–100
+```
+
+---
+
+### RANDBETWEEN
+
+```
+RANDBETWEEN(bottom, top)
+```
+
+Returns a random integer between `bottom` and `top` (inclusive).
+
+```
+=RANDBETWEEN(1, 6)    → random die roll
+=RANDBETWEEN(1, 100)  → random integer 1–100
+```
+
+---
+
+### FACT
+
+```
+FACT(number)
+```
+
+Returns the factorial of a non-negative integer. Returns `#NUM!` for negative input.
+
+```
+=FACT(5)  → 120
+=FACT(0)  → 1
+=FACT(10) → 3628800
+```
+
+---
+
+### SUMPRODUCT
+
+```
+SUMPRODUCT(array1, [array2, ...])
+```
+
+Returns the sum of products of corresponding elements. With the flat-args evaluator, single-range usage is equivalent to `SUM`.
+
+```
+=SUMPRODUCT(A1:A3)           → sum of A1:A3
+=SUMPRODUCT(2, 3, 4)         → 9  (2+3+4)
+```
+
+---
+
+### SUMSQ
+
+```
+SUMSQ(number1, [number2, ...])
+```
+
+Returns the sum of the squares of its arguments.
+
+```
+=SUMSQ(3, 4)     → 25  (9 + 16)
+=SUMSQ(1, 2, 3)  → 14  (1 + 4 + 9)
+```
+
+---
+
 ## Logic & Information
 
 ### IF
@@ -348,6 +596,66 @@ Returns TRUE if the value is any error value (`#DIV/0!`, `#N/A`, `#REF!`, etc.).
 
 ```
 =ISERROR(A1/B1)   → TRUE when B1 is 0
+```
+
+---
+
+### XOR
+
+```
+XOR(logical1, [logical2, ...])
+```
+
+Returns TRUE if an odd number of the arguments are TRUE. Returns FALSE if all are the same.
+
+```
+=XOR(TRUE, FALSE)   → TRUE
+=XOR(TRUE, TRUE)    → FALSE
+=XOR(FALSE, FALSE)  → FALSE
+```
+
+---
+
+### IFS
+
+```
+IFS(condition1, value1, [condition2, value2, ...])
+```
+
+Checks a series of conditions and returns the value corresponding to the first TRUE condition. Returns `#N/A` if no condition is TRUE.
+
+```
+=IFS(A1>90, "A", A1>80, "B", A1>70, "C")
+```
+
+---
+
+### SWITCH
+
+```
+SWITCH(expression, value1, result1, [value2, result2, ...], [default])
+```
+
+Evaluates an expression against a list of values and returns the result for the first match. If no match, returns the optional default or `#N/A`.
+
+```
+=SWITCH(A1, 1, "Mon", 2, "Tue", 3, "Wed", "Other")
+```
+
+---
+
+### IFNA
+
+```
+IFNA(value, value_if_na)
+```
+
+Returns `value_if_na` only when `value` is a `#N/A` error. Other error types pass through unchanged.
+
+```
+=IFNA(VLOOKUP(A1, B:C, 2, 0), "Not found")
+=IFNA(#N/A, "missing")   → "missing"
+=IFNA(#DIV/0!, "x")      → #DIV/0!  (not NA, passes through)
 ```
 
 ---
@@ -513,6 +821,114 @@ Replaces occurrences of `old_text` with `new_text`. If `instance_num` is provide
 ```
 =SUBSTITUTE("aabbaa", "a", "x")     → "xxbbxx"
 =SUBSTITUTE("aabbaa", "a", "x", 2)  → "axbbaa"
+```
+
+---
+
+### EXACT
+
+```
+EXACT(text1, text2)
+```
+
+Returns TRUE if two text strings are identical (case-sensitive). Returns FALSE otherwise.
+
+```
+=EXACT("abc", "abc")  → TRUE
+=EXACT("ABC", "abc")  → FALSE
+```
+
+---
+
+### SEARCH
+
+```
+SEARCH(find_text, within_text, [start_num])
+```
+
+Returns the position of `find_text` within `within_text`. Case-insensitive. Returns `#VALUE!` if not found.
+
+```
+=SEARCH("o", "Hello World")   → 5
+=SEARCH("O", "Hello World")   → 5  (case-insensitive)
+=SEARCH("x", "Hello")         → #VALUE!
+```
+
+---
+
+### REPLACE
+
+```
+REPLACE(old_text, start_num, num_chars, new_text)
+```
+
+Replaces part of a text string with a different text string, based on position and length.
+
+```
+=REPLACE("abcdef", 2, 3, "XY")  → "aXYef"
+=REPLACE("Hello", 1, 1, "J")    → "Jello"
+```
+
+---
+
+### CHAR
+
+```
+CHAR(number)
+```
+
+Returns the character corresponding to the given ASCII/Unicode code point.
+
+```
+=CHAR(65)  → "A"
+=CHAR(97)  → "a"
+```
+
+---
+
+### CODE
+
+```
+CODE(text)
+```
+
+Returns the numeric code of the first character in a text string.
+
+```
+=CODE("A")     → 65
+=CODE("abc")   → 97  (code of "a")
+```
+
+---
+
+### VALUE
+
+```
+VALUE(text)
+```
+
+Converts a text string that represents a number to a number. Returns `#VALUE!` if the text cannot be parsed.
+
+```
+=VALUE("42")    → 42
+=VALUE("3.14")  → 3.14
+=VALUE("abc")   → #VALUE!
+```
+
+---
+
+### T
+
+```
+T(value)
+```
+
+Returns the value if it is text, or an empty string if it is not.
+
+```
+=T("hello")  → "hello"
+=T(42)       → ""
+=T(TRUE)     → ""
 ```
 
 ---

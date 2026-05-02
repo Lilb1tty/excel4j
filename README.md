@@ -215,17 +215,17 @@ All first-class types. No `instanceof` chains needed — use pattern matching sw
 
 ## Formula Functions (v1)
 
-68 built-in functions covering math, logic, text, date/time, and lookup/statistical:
+95 built-in functions covering math, logic, text, date/time, and lookup/statistical:
 
-**Math:** `SUM`, `PRODUCT`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `POWER`, `SQRT`, `COUNT`, `AVERAGE`
+**Math:** `SUM`, `PRODUCT`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `POWER`, `SQRT`, `COUNT`, `AVERAGE`, `CEILING`, `FLOOR`, `ROUNDUP`, `ROUNDDOWN`, `TRUNC`, `SIGN`, `LOG`, `LOG10`, `LN`, `EXP`, `PI`, `RAND`, `RANDBETWEEN`, `FACT`, `SUMPRODUCT`, `SUMSQ`
 
-**Logic:** `IF`, `AND`, `OR`, `NOT`, `IFERROR`, `ISBLANK`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISERROR`
+**Logic:** `IF`, `AND`, `OR`, `NOT`, `IFERROR`, `ISBLANK`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISERROR`, `XOR`, `IFS`, `SWITCH`, `IFNA`
 
-**Text:** `LEFT`, `RIGHT`, `MID`, `LEN`, `TRIM`, `CONCATENATE`, `UPPER`, `LOWER`, `REPT`, `FIND`, `SUBSTITUTE`
+**Text:** `LEFT`, `RIGHT`, `MID`, `LEN`, `TRIM`, `CONCATENATE`, `UPPER`, `LOWER`, `REPT`, `FIND`, `SUBSTITUTE`, `EXACT`, `SEARCH`, `REPLACE`, `CHAR`, `CODE`, `VALUE`, `T`
 
 **Date/Time:** `DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`, `HOUR`, `MINUTE`, `SECOND`, `WEEKDAY`, `EDATE`, `EOMONTH`, `DAYS`, `TIME`, `DATEDIF`, `ISOWEEKNUM`
 
-**Lookup/Stat:** `VLOOKUP`, `INDEX`, `MATCH`, `COUNTA`, `COUNTIF`, `SUMIF`, `AVERAGEIF`
+**Lookup/Stat:** `VLOOKUP`, `INDEX`, `MATCH`, `COUNTA`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `HLOOKUP`, `CHOOSE`, `LARGE`, `SMALL`, `RANK`, `MEDIAN`, `MODE`, `STDEV`, `VAR`, `COUNTIFS`, `SUMIFS`, `AVERAGEIFS`
 
 Custom functions are extensible via `FunctionRegistry`.
 
@@ -236,21 +236,21 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 ### v1 (Current)
 - [x] XLSX read/write with StAX streaming
 - [x] Type-safe cell model with styles
-- [x] Formula parser + evaluator (68 functions)
+- [x] Formula parser + evaluator (95 functions)
 - [x] Template-based report generation
 - [x] Full JPMS module boundaries
+- [x] Streaming read API — `Stream<Row>` for large files
+- [x] Expanded function library (50 → 95)
 
 ### v2
 - [ ] PDF/image rendering (`excel4j-render`)
-- [ ] Streaming read API for large files
 - [ ] Array formulas / dynamic arrays
 - [ ] Charts
 - [ ] Pivot tables
-- [ ] Expanded function library
 
 ## Documentation
 
-- [Function Reference](docs/functions.md) — all 68 formula functions with syntax and examples
+- [Function Reference](docs/functions.md) — all 95 formula functions with syntax and examples
 
 ## Build
 
@@ -262,17 +262,22 @@ Requires Java 21. No `--enable-preview` features.
 
 ## Changelog
 
+### v1.2.0 — 2026-05-02
+
+**excel4j-formula**
+- Added 45 new functions (50 → 95 total):
+  - Math: `CEILING`, `FLOOR`, `ROUNDUP`, `ROUNDDOWN`, `TRUNC`, `SIGN`, `LOG`, `LOG10`, `LN`, `EXP`, `PI`, `RAND`, `RANDBETWEEN`, `FACT`, `SUMPRODUCT`, `SUMSQ`
+  - Logic: `XOR`, `IFS`, `SWITCH`, `IFNA`
+  - Text: `EXACT`, `SEARCH`, `REPLACE`, `CHAR`, `CODE`, `VALUE`, `T`
+  - Date/Time: `EDATE`, `EOMONTH`, `DAYS`, `TIME`, `DATEDIF`, `ISOWEEKNUM`
+  - Lookup/Stat: `HLOOKUP`, `CHOOSE`, `LARGE`, `SMALL`, `RANK`, `MEDIAN`, `MODE`, `STDEV`, `VAR`, `COUNTIFS`, `SUMIFS`, `AVERAGEIFS`
+
 ### v1.1.0 — 2026-05-02
 
 **excel4j-core**
 - Added `Row` record: row number + column-indexed `CellValue` map with `cell(int col)` helper
 - Added `SheetStreamReader`: `AutoCloseable` row-by-row XLSX streaming via StAX — works with both standard OOXML `<row>` elements and excel4j's own write format
 - Added `Excel.streamReader(Path, int)` and `Excel.streamReader(String, int)` entry points
-
-**excel4j-formula**
-- Added 12 new lookup and statistical functions: HLOOKUP, CHOOSE, LARGE, SMALL, RANK, MEDIAN, MODE, STDEV, VAR, COUNTIFS, SUMIFS, AVERAGEIFS
-- Added 6 new date/time functions: EDATE, EOMONTH, DAYS, TIME, DATEDIF, ISOWEEKNUM
-- Total functions now 68 (up from 50)
 
 ### v1.0.0 — 2026-05-01
 
@@ -288,7 +293,7 @@ Initial release.
 
 **excel4j-formula**
 - Formula tokenizer, recursive-descent parser, AST evaluator
-- 62 built-in functions: math, logic, text, date/time, lookup/statistical
+- 50 built-in functions: math, logic, text, date/time, lookup/statistical
 - Circular reference detection — affected cells get `#CIRCULAR_REF`, rest continue
 - Extensible `FunctionRegistry` for custom functions
 - Full Excel error type propagation
