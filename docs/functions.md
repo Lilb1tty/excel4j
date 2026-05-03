@@ -1,6 +1,6 @@
-# excel4j Formula Function Reference
+# cellix Formula Function Reference
 
-All 98 built-in functions supported by `excel4j-formula`. Functions are case-insensitive.
+All 98 built-in functions supported by `cellix-formula`. Functions are case-insensitive.
 
 To evaluate formulas, call `workbook.recalculate(evaluator::evaluate)` after setting up a `FormulaEvaluator`.
 
@@ -1549,7 +1549,7 @@ Array literals evaluate to `RangeValue` and work with any function that accepts 
 Charts are attached to worksheets and written as part of the XLSX output.
 
 ```java
-import io.excel4j.core.model.*;
+import io.github.lilb1tty.cellix.core.model.*;
 
 Worksheet sheet = wb.sheet("Sales");
 
@@ -1577,9 +1577,9 @@ Multiple charts per sheet supported.
 Register custom functions via `FunctionRegistry`:
 
 ```java
-import io.excel4j.formula.FunctionRegistry;
-import io.excel4j.formula.FormulaEvaluator;
-import io.excel4j.core.model.NumberValue;
+import io.github.lilb1tty.cellix.formula.FunctionRegistry;
+import io.github.lilb1tty.cellix.formula.FormulaEvaluator;
+import io.github.lilb1tty.cellix.core.model.NumberValue;
 
 FunctionRegistry registry = new FunctionRegistry();
 

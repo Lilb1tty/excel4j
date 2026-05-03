@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+           http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>io.github.lilb1tty</groupId>
+    <artifactId>cellix</artifactId>
+    <version>1.1.0</version>
+  </parent>
+  <artifactId>cellix-bom</artifactId>
+  <packaging>pom</packaging>
+  <name>cellix :: BOM</name>
+  <description>Bill of materials for cellix — import to align all module versions in one declaration.</description>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.github.lilb1tty</groupId>
+        <artifactId>cellix-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.lilb1tty</groupId>
+        <artifactId>cellix-formula</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.lilb1tty</groupId>
+        <artifactId>cellix-report</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.github.lilb1tty</groupId>
+        <artifactId>cellix-render</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+</project>

@@ -1,4 +1,4 @@
-# excel4j — Claude Instructions
+# cellix — Claude Instructions
 
 ## Documentation Maintenance (REQUIRED)
 
@@ -21,9 +21,9 @@ Do this in the same commit as the implementation. Never leave docs out of date.
 ## Project Context
 
 - Maven multi-module Java 21 project, full JPMS
-- Modules: `excel4j-core`, `excel4j-formula`, `excel4j-report`, `excel4j-render` (v2 stub)
+- Modules: `cellix-core`, `cellix-formula`, `cellix-report`, `cellix-render`
 - Zero external runtime dependencies — JDK 21 only
-- Apache 2.0, GitHub: https://github.com/Lilb1tty/excel4j
+- Apache 2.0, GitHub: https://github.com/Lilb1tty/cellix
 - `docs/superpowers/` is gitignored (internal planning only)
 
 ## Dev Conventions
@@ -33,3 +33,6 @@ Do this in the same commit as the implementation. Never leave docs out of date.
 - Immutable style: `CellStyle` is a record, mutate via `withXxx()` copy methods
 - Unchecked exceptions only — no checked exceptions in public API
 - JPMS: exported packages only, no reflective access across module boundaries
+- Entry point class: `Cellix` (was `Excel` pre-rename)
+- Exception classes: `CellixException`, `CellixReadException`, `CellixWriteException`
+- Custom function interface: `CellixFunction`

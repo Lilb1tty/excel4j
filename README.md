@@ -1,6 +1,6 @@
-# excel4j
+# cellix
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.lilb1tty/excel4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.lilb1tty/excel4j-core)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.lilb1tty/cellix-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.lilb1tty/cellix-core)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21%2B-orange.svg)](https://openjdk.org/projects/jdk/21/)
 
@@ -10,23 +10,23 @@ Inspired by [FlexCel](https://www.tmssoftware.com/site/flexcelnet.asp) (.NET) �
 
 ```java
 // Create (named first sheet, no extra Sheet1)
-Workbook wb = Excel.create("Sales");
+Workbook wb = Cellix.create("Sales");
 Worksheet sheet = wb.sheet("Sales");
 sheet.cell("A1").setValue(new TextValue("Q1 Revenue"));
 sheet.cell("B1").setValue(new NumberValue(125000.50));
-Excel.write(wb, Path.of("report.xlsx"));
+Cellix.write(wb, Path.of("report.xlsx"));
 
 // Read
-Workbook read = Excel.read(Path.of("report.xlsx"));
+Workbook read = Cellix.read(Path.of("report.xlsx"));
 CellValue value = read.sheet("Sales").cell("B1").getValue();
 
 // Template report
-Workbook template = Excel.read(Path.of("invoice-template.xlsx"));
+Workbook template = Cellix.read(Path.of("invoice-template.xlsx"));
 ReportContext ctx = ReportContext.create()
     .set("customer", "Acme Corp")
     .set("items", List.of(item1, item2));
 Workbook output = new ReportEngine().render(template, ctx);
-Excel.write(output, Path.of("invoice-output.xlsx"));
+Cellix.write(output, Path.of("invoice-output.xlsx"));
 ```
 
 ## Features
@@ -56,7 +56,7 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 ```xml
 <dependency>
   <groupId>io.github.lilb1tty</groupId>
-  <artifactId>excel4j-core</artifactId>
+  <artifactId>cellix-core</artifactId>
   <version>1.1.0</version>
 </dependency>
 ```
@@ -64,13 +64,13 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 **Gradle (Kotlin DSL):**
 
 ```kotlin
-implementation("io.github.lilb1tty:excel4j-core:1.1.0")
+implementation("io.github.lilb1tty:cellix-core:1.1.0")
 ```
 
 **Gradle (Groovy):**
 
 ```groovy
-implementation 'io.github.lilb1tty:excel4j-core:1.1.0'
+implementation 'io.github.lilb1tty:cellix-core:1.1.0'
 ```
 
 Or use the BOM to manage all module versions at once:
@@ -80,7 +80,7 @@ Or use the BOM to manage all module versions at once:
   <dependencies>
     <dependency>
       <groupId>io.github.lilb1tty</groupId>
-      <artifactId>excel4j-bom</artifactId>
+      <artifactId>cellix-bom</artifactId>
       <version>1.1.0</version>
       <type>pom</type>
       <scope>import</scope>
@@ -90,23 +90,23 @@ Or use the BOM to manage all module versions at once:
 ```
 
 Modules:
-- `excel4j-core` — XLSX I/O + workbook/cell model
-- `excel4j-formula` — Formula parser, AST, evaluator
-- `excel4j-report` — Template-based report generation
-- `excel4j-render` — PNG/JPEG/PDF rendering
+- `cellix-core` — XLSX I/O + workbook/cell model
+- `cellix-formula` — Formula parser, AST, evaluator
+- `cellix-report` — Template-based report generation
+- `cellix-render` — PNG/JPEG/PDF rendering
 
 ## Quick Start
 
 ### Create a workbook
 
 ```java
-import io.github.lilb1tty.excel4j.core.Excel;
-import io.github.lilb1tty.excel4j.core.model.*;
-import io.github.lilb1tty.excel4j.core.model.style.*;
+import io.github.lilb1tty.cellix.core.Cellix;
+import io.github.lilb1tty.cellix.core.model.*;
+import io.github.lilb1tty.cellix.core.model.style.*;
 import java.nio.file.Path;
 import java.time.LocalDate;
 
-Workbook wb = Excel.create("Orders");
+Workbook wb = Cellix.create("Orders");
 Worksheet sheet = wb.sheet("Orders");
 
 // Values
@@ -129,7 +129,7 @@ sheet.cell("A1").setStyle(headerStyle);
 sheet.cell("B1").setStyle(headerStyle);
 sheet.cell("C1").setStyle(headerStyle);
 
-Excel.write(wb, Path.of("orders.xlsx"));
+Cellix.write(wb, Path.of("orders.xlsx"));
 ```
 
 ### Range selection
@@ -163,7 +163,7 @@ sheet.range("A1", "C1")
 ### Read a workbook
 
 ```java
-Workbook wb = Excel.read(Path.of("orders.xlsx"));
+Workbook wb = Cellix.read(Path.of("orders.xlsx"));
 Worksheet sheet = wb.sheet("Orders");
 
 CellValue value = sheet.cell("B2").getValue();
@@ -181,9 +181,9 @@ String text = switch (value) {
 For large files, stream rows one at a time without loading the full workbook:
 
 ```java
-import io.github.lilb1tty.excel4j.core.io.SheetStreamReader;
+import io.github.lilb1tty.cellix.core.io.SheetStreamReader;
 
-try (SheetStreamReader reader = Excel.streamReader(Path.of("large.xlsx"), 1)) {
+try (SheetStreamReader reader = Cellix.streamReader(Path.of("large.xlsx"), 1)) {
     reader.stream()
         .skip(1)                          // skip header row
         .filter(row -> row.rowNum() < 1000)
@@ -200,9 +200,9 @@ try (SheetStreamReader reader = Excel.streamReader(Path.of("large.xlsx"), 1)) {
 ### Evaluate formulas
 
 ```java
-import io.github.lilb1tty.excel4j.formula.FormulaEvaluator;
+import io.github.lilb1tty.cellix.formula.FormulaEvaluator;
 
-Workbook wb = Excel.read(Path.of("sheet-with-formulas.xlsx"));
+Workbook wb = Cellix.read(Path.of("sheet-with-formulas.xlsx"));
 FormulaEvaluator evaluator = new FormulaEvaluator(wb);
 wb.recalculate(evaluator::evaluate);
 
@@ -221,9 +221,9 @@ Design an `.xlsx` template with tags:
 | `</band>` | End repeating band |
 
 ```java
-import io.github.lilb1tty.excel4j.report.*;
+import io.github.lilb1tty.cellix.report.*;
 
-Workbook template = Excel.read(Path.of("invoice-template.xlsx"));
+Workbook template = Cellix.read(Path.of("invoice-template.xlsx"));
 
 ReportContext ctx = ReportContext.create()
     .set("company", "Acme Corp")
@@ -235,7 +235,7 @@ ReportContext ctx = ReportContext.create()
 
 ReportEngine engine = new ReportEngine();
 Workbook output = engine.render(template, ctx);
-Excel.write(output, Path.of("invoice-2024-001.xlsx"));
+Cellix.write(output, Path.of("invoice-2024-001.xlsx"));
 ```
 
 The engine expands bands row-by-row, substitutes values, and preserves styles and formulas.
@@ -243,7 +243,7 @@ The engine expands bands row-by-row, substitutes values, and preserves styles an
 ### Pivot tables
 
 ```java
-Workbook wb = Excel.create();
+Workbook wb = Cellix.create();
 Worksheet sheet = wb.addSheet("Sales");
 
 // Source data
@@ -264,7 +264,7 @@ PivotTable pt = PivotTable.builder()
     .build();
 sheet.addPivotTable(pt);
 
-Excel.write(wb, Path.of("report.xlsx"));
+Cellix.write(wb, Path.of("report.xlsx"));
 ```
 
 Excel regenerates pivot cache data on open. Only pivot layout definition is written.
@@ -272,10 +272,10 @@ Excel regenerates pivot cache data on open. Only pivot layout definition is writ
 ### Render to PNG/JPEG
 
 ```java
-import io.github.lilb1tty.excel4j.render.SheetRenderer;
-import io.github.lilb1tty.excel4j.render.RenderOptions;
+import io.github.lilb1tty.cellix.render.SheetRenderer;
+import io.github.lilb1tty.cellix.render.RenderOptions;
 
-Workbook wb = Excel.read(Path.of("report.xlsx"));
+Workbook wb = Cellix.read(Path.of("report.xlsx"));
 Worksheet sheet = wb.sheet(1);
 
 // Default options (96px wide columns, 22px tall rows, 11pt font)
@@ -293,9 +293,9 @@ BufferedImage img = SheetRenderer.toImage(sheet, RenderOptions.defaults());
 ### Render to PDF
 
 ```java
-import io.github.lilb1tty.excel4j.render.PdfRenderer;
+import io.github.lilb1tty.cellix.render.PdfRenderer;
 
-Workbook wb = Excel.read(Path.of("report.xlsx"));
+Workbook wb = Cellix.read(Path.of("report.xlsx"));
 
 // One page per worksheet, A4 portrait
 PdfRenderer.toPdf(wb, Path.of("report.pdf"));
@@ -304,17 +304,17 @@ PdfRenderer.toPdf(wb, Path.of("report.pdf"));
 PdfRenderer.toPdf(wb.sheet(1), Path.of("page1.pdf"));
 ```
 
-Rendering uses `java.awt` in headless mode — no display required. PDF output embeds rendered images into a minimal PDF 1.4 document. Requires the `excel4j-render` module.
+Rendering uses `java.awt` in headless mode — no display required. PDF output embeds rendered images into a minimal PDF 1.4 document. Requires the `cellix-render` module.
 
 ## Architecture
 
 ```
-excel4j/
-├── excel4j-bom/          Bill of materials
-├── excel4j-core/         XLSX I/O + workbook/cell model
-├── excel4j-formula/      Formula parser, AST, evaluator
-├── excel4j-report/       Template engine (FlexCel-style)
-└── excel4j-render/       PNG/JPEG/PDF rendering (AWT + raw PDF)
+cellix/
+├── cellix-bom/           Bill of materials
+├── cellix-core/          XLSX I/O + workbook/cell model
+├── cellix-formula/       Formula parser, AST, evaluator
+├── cellix-report/        Template engine (FlexCel-style)
+└── cellix-render/        PNG/JPEG/PDF rendering (AWT + raw PDF)
 ```
 
 Dependency direction: `report` → `formula` → `core`
@@ -367,8 +367,8 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 - [x] Expanded function library (50 → 98)
 - [x] Array formulas / dynamic arrays
 - [x] Pivot tables (write path)
-- [x] PNG/JPEG rendering — `excel4j-render` (`SheetRenderer`)
-- [x] PDF export — `excel4j-render` (`PdfRenderer`)
+- [x] PNG/JPEG rendering — `cellix-render` (`SheetRenderer`)
+- [x] PDF export — `cellix-render` (`PdfRenderer`)
 
 ## Documentation
 
@@ -386,8 +386,8 @@ Requires Java 21 or later. No `--enable-preview` features.
 
 ### v1.1.0 — 2026-05-03
 
-**excel4j-core**
-- `Excel.create(String sheetName)` — creates a workbook with a named first sheet, no extra default Sheet1
+**cellix-core**
+- `Cellix.create(String sheetName)` — creates a workbook with a named first sheet, no extra default Sheet1
 - `Worksheet.range(String from, String to)` — returns a `RangeSelection` for bulk style and value operations
 - `RangeSelection.setStyle(CellStyle)` — applies a style to every cell in the range
 - `RangeSelection.setValues(List<List<CellValue>>)` — sets values row-by-row across the range
@@ -397,16 +397,17 @@ Requires Java 21 or later. No `--enable-preview` features.
 - Fixed OOXML writer: `<f>` (formula) element now written before `<v>` (value) per OOXML schema
 - Fixed OOXML writer: `Content_Types.xml` now includes required `Default` entries for `.rels` and `.xml`
 - Fixed OOXML writer: `applyFont` and `applyFill` attributes now set correctly in `cellXfs`
+- Renamed project from `excel4j` to `cellix` — new Maven coordinates `io.github.lilb1tty:cellix-*`
 
 ### v1.0.0 — 2026-05-03
 
 **Release**
 - Published to Maven Central (`io.github.lilb1tty`)
-- All five artifacts available: `excel4j-core`, `excel4j-formula`, `excel4j-report`, `excel4j-render`, `excel4j-bom`
+- All five artifacts available: `cellix-core`, `cellix-formula`, `cellix-report`, `cellix-render`, `cellix-bom`
 
 ### v1.6.0 — 2026-05-02
 
-**excel4j-render** (new module)
+**cellix-render** (new module)
 - `SheetRenderer` — renders worksheets to `BufferedImage`, PNG, or JPEG using `java.awt` (headless-safe)
 - `PdfRenderer` — renders workbooks to PDF (one A4 page per sheet) using raw PDF 1.4 writing with embedded images
 - `RenderOptions` record — configure cell dimensions, font size, and padding
@@ -414,7 +415,7 @@ Requires Java 21 or later. No `--enable-preview` features.
 
 ### v1.5.0 — 2026-05-02
 
-**excel4j-core**
+**cellix-core**
 - Pivot table support (write path): row fields + data fields with aggregation
 - `PivotTable` builder API with `sourceRange`, `rowField`, `dataField`, and `location`
 - `Worksheet.addPivotTable()` attaches pivot tables to worksheets
@@ -422,7 +423,7 @@ Requires Java 21 or later. No `--enable-preview` features.
 
 ### v1.4.0 — 2026-05-02
 
-**excel4j-core**
+**cellix-core**
 - Chart support (write path): bar, line, pie charts
 - `Chart` builder API with title, type, categories, series, and position
 - `Worksheet.addChart()` attaches charts to worksheets
@@ -430,14 +431,14 @@ Requires Java 21 or later. No `--enable-preview` features.
 
 ### v1.3.0 — 2026-05-02
 
-**excel4j-formula**
+**cellix-formula**
 - Array formula literals: `{1,2;3,4}` syntax with `,` (column) and `;` (row) separators
 - New array functions: `SEQUENCE`, `UNIQUE`, `SORT`
 - Total functions now 98 (up from 95)
 
 ### v1.2.0 — 2026-05-02
 
-**excel4j-formula**
+**cellix-formula**
 - Added 45 new functions (50 → 95 total):
   - Math: `CEILING`, `FLOOR`, `ROUNDUP`, `ROUNDDOWN`, `TRUNC`, `SIGN`, `LOG`, `LOG10`, `LN`, `EXP`, `PI`, `RAND`, `RANDBETWEEN`, `FACT`, `SUMPRODUCT`, `SUMSQ`
   - Logic: `XOR`, `IFS`, `SWITCH`, `IFNA`
@@ -447,31 +448,31 @@ Requires Java 21 or later. No `--enable-preview` features.
 
 ### v1.1.0 — 2026-05-02
 
-**excel4j-core**
+**cellix-core**
 - Added `Row` record: row number + column-indexed `CellValue` map with `cell(int col)` helper
-- Added `SheetStreamReader`: `AutoCloseable` row-by-row XLSX streaming via StAX — works with both standard OOXML `<row>` elements and excel4j's own write format
-- Added `Excel.streamReader(Path, int)` and `Excel.streamReader(String, int)` entry points
+- Added `SheetStreamReader`: `AutoCloseable` row-by-row XLSX streaming via StAX
+- Added `Cellix.streamReader(Path, int)` and `Cellix.streamReader(String, int)` entry points
 
 ### v1.0.0 — 2026-05-01
 
 Initial release.
 
-**excel4j-core**
+**cellix-core**
 - XLSX read/write via StAX streaming (low memory, handles large files)
 - Type-safe cell value model: `TextValue`, `NumberValue`, `BooleanValue`, `DateValue`, `DateTimeValue`, `ErrorValue`, `BlankValue`
 - Immutable `CellStyle` record with `Font`, `Fill`, `Border`, `NumberFormat`
 - Predefined number format constants + `NumberFormat.custom()`
 - A1 notation and row/col (1-based) cell addressing
-- `Excel.create()`, `Excel.read()`, `Excel.write()` static entry points
+- `Cellix.create()`, `Cellix.read()`, `Cellix.write()` static entry points
 
-**excel4j-formula**
+**cellix-formula**
 - Formula tokenizer, recursive-descent parser, AST evaluator
 - 50 built-in functions: math, logic, text, date/time, lookup/statistical
 - Circular reference detection — affected cells get `#CIRCULAR_REF`, rest continue
 - Extensible `FunctionRegistry` for custom functions
 - Full Excel error type propagation
 
-**excel4j-report**
+**cellix-report**
 - FlexCel-style template engine with `<#value name>` and `<#band name>` / `</band>` tags
 - Band expansion: repeats rows for each item in a collection
 - Value substitution with dot-notation (`customer.name`), JavaBean getters, `Map` keys

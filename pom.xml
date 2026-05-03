@@ -6,13 +6,13 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.github.lilb1tty</groupId>
-  <artifactId>excel4j</artifactId>
+  <artifactId>cellix</artifactId>
   <version>1.1.0</version>
   <packaging>pom</packaging>
 
-  <name>excel4j</name>
+  <name>cellix</name>
   <description>FlexCel-inspired Excel library for Java 21 — read, write, formula evaluation, and template-based report generation. Zero external runtime dependencies.</description>
-  <url>https://github.com/Lilb1tty/excel4j</url>
+  <url>https://github.com/Lilb1tty/cellix</url>
 
   <licenses>
     <license>
@@ -32,23 +32,23 @@
   </developers>
 
   <scm>
-    <url>https://github.com/Lilb1tty/excel4j</url>
-    <connection>scm:git:git://github.com/Lilb1tty/excel4j.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/Lilb1tty/excel4j.git</developerConnection>
+    <url>https://github.com/Lilb1tty/cellix</url>
+    <connection>scm:git:git://github.com/Lilb1tty/cellix.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/Lilb1tty/cellix.git</developerConnection>
     <tag>v1.1.0</tag>
   </scm>
 
   <issueManagement>
     <system>GitHub</system>
-    <url>https://github.com/Lilb1tty/excel4j/issues</url>
+    <url>https://github.com/Lilb1tty/cellix/issues</url>
   </issueManagement>
 
   <modules>
-    <module>excel4j-bom</module>
-    <module>excel4j-core</module>
-    <module>excel4j-formula</module>
-    <module>excel4j-report</module>
-    <module>excel4j-render</module>
+    <module>cellix-bom</module>
+    <module>cellix-core</module>
+    <module>cellix-formula</module>
+    <module>cellix-report</module>
+    <module>cellix-render</module>
   </modules>
 
   <properties>
