@@ -1,10 +1,10 @@
-module io.excel4j.core {
+module io.github.lilb1tty.excel4j.core {
     requires java.xml;
 
-    exports io.excel4j.core;
-    exports io.excel4j.core.model;
-    exports io.excel4j.core.model.style;
-    exports io.excel4j.core.exception;
-    exports io.excel4j.core.io;
-    exports io.excel4j.core.io.internal;
+    exports io.github.lilb1tty.excel4j.core;
+    exports io.github.lilb1tty.excel4j.core.model;
+    exports io.github.lilb1tty.excel4j.core.model.style;
+    exports io.github.lilb1tty.excel4j.core.exception;
+    exports io.github.lilb1tty.excel4j.core.io;
+    exports io.github.lilb1tty.excel4j.core.io.internal;
 }

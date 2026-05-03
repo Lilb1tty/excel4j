@@ -1,6 +1,6 @@
-module io.excel4j.report {
-    requires io.excel4j.core;
-    requires io.excel4j.formula;
+module io.github.lilb1tty.excel4j.report {
+    requires io.github.lilb1tty.excel4j.core;
+    requires io.github.lilb1tty.excel4j.formula;
 
-    exports io.excel4j.report;
+    exports io.github.lilb1tty.excel4j.report;
 }

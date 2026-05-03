@@ -47,9 +47,9 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 
 ```xml
 <dependency>
-  <groupId>io.excel4j</groupId>
+  <groupId>io.github.lilb1tty</groupId>
   <artifactId>excel4j-core</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
@@ -59,9 +59,9 @@ Or use the BOM to manage all module versions:
 <dependencyManagement>
   <dependencies>
     <dependency>
-      <groupId>io.excel4j</groupId>
+      <groupId>io.github.lilb1tty</groupId>
       <artifactId>excel4j-bom</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
+      <version>1.0.0</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -79,9 +79,9 @@ Modules:
 ### Create a workbook
 
 ```java
-import io.excel4j.core.Excel;
-import io.excel4j.core.model.*;
-import io.excel4j.core.model.style.*;
+import io.github.lilb1tty.excel4j.core.Excel;
+import io.github.lilb1tty.excel4j.core.model.*;
+import io.github.lilb1tty.excel4j.core.model.style.*;
 import java.nio.file.Path;
 import java.time.LocalDate;
 
@@ -132,7 +132,7 @@ String text = switch (value) {
 For large files, stream rows one at a time without loading the full workbook:
 
 ```java
-import io.excel4j.core.io.SheetStreamReader;
+import io.github.lilb1tty.excel4j.core.io.SheetStreamReader;
 
 try (SheetStreamReader reader = Excel.streamReader(Path.of("large.xlsx"), 1)) {
     reader.stream()
@@ -151,7 +151,7 @@ try (SheetStreamReader reader = Excel.streamReader(Path.of("large.xlsx"), 1)) {
 ### Evaluate formulas
 
 ```java
-import io.excel4j.formula.FormulaEvaluator;
+import io.github.lilb1tty.excel4j.formula.FormulaEvaluator;
 
 Workbook wb = Excel.read(Path.of("sheet-with-formulas.xlsx"));
 FormulaEvaluator evaluator = new FormulaEvaluator(wb);
@@ -172,7 +172,7 @@ Design an `.xlsx` template with tags:
 | `</band>` | End repeating band |
 
 ```java
-import io.excel4j.report.*;
+import io.github.lilb1tty.excel4j.report.*;
 
 Workbook template = Excel.read(Path.of("invoice-template.xlsx"));
 
@@ -223,8 +223,8 @@ Excel regenerates pivot cache data on open. Only pivot layout definition is writ
 ### Render to PNG/JPEG
 
 ```java
-import io.excel4j.render.SheetRenderer;
-import io.excel4j.render.RenderOptions;
+import io.github.lilb1tty.excel4j.render.SheetRenderer;
+import io.github.lilb1tty.excel4j.render.RenderOptions;
 
 Workbook wb = Excel.read(Path.of("report.xlsx"));
 Worksheet sheet = wb.sheet(1);
@@ -244,7 +244,7 @@ BufferedImage img = SheetRenderer.toImage(sheet, RenderOptions.defaults());
 ### Render to PDF
 
 ```java
-import io.excel4j.render.PdfRenderer;
+import io.github.lilb1tty.excel4j.render.PdfRenderer;
 
 Workbook wb = Excel.read(Path.of("report.xlsx"));
 
