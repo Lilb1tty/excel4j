@@ -11,6 +11,8 @@
   </parent>
   <artifactId>excel4j-bom</artifactId>
   <packaging>pom</packaging>
+  <name>excel4j :: BOM</name>
+  <description>Bill of materials for excel4j — import to align all module versions in one declaration.</description>
   <dependencyManagement>
     <dependencies>
       <dependency>

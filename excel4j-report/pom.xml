@@ -10,6 +10,8 @@
     <version>1.0.0</version>
   </parent>
   <artifactId>excel4j-report</artifactId>
+  <name>excel4j :: Report</name>
+  <description>Template-based report generation for excel4j — data binding, bands, and repeating sections.</description>
   <dependencies>
     <dependency>
       <groupId>io.github.lilb1tty</groupId>

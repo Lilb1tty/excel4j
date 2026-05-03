@@ -1,5 +1,9 @@
 # excel4j
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.lilb1tty/excel4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.lilb1tty/excel4j-core)
+[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
+
 Pure JDK 21 library for reading, writing, and templating Excel `.xlsx` files.
 
 Inspired by [FlexCel](https://www.tmssoftware.com/site/flexcelnet.asp) (.NET) — built from scratch with zero external runtime dependencies. Not a wrapper over Apache POI.
@@ -45,6 +49,8 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 
 ## Installation
 
+**Maven:**
+
 ```xml
 <dependency>
   <groupId>io.github.lilb1tty</groupId>
@@ -53,7 +59,19 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 </dependency>
 ```
 
-Or use the BOM to manage all module versions:
+**Gradle (Kotlin DSL):**
+
+```kotlin
+implementation("io.github.lilb1tty:excel4j-core:1.0.0")
+```
+
+**Gradle (Groovy):**
+
+```groovy
+implementation 'io.github.lilb1tty:excel4j-core:1.0.0'
+```
+
+Or use the BOM to manage all module versions at once:
 
 ```xml
 <dependencyManagement>
@@ -73,6 +91,7 @@ Modules:
 - `excel4j-core` — XLSX I/O + workbook/cell model
 - `excel4j-formula` — Formula parser, AST, evaluator
 - `excel4j-report` — Template-based report generation
+- `excel4j-render` — PNG/JPEG/PDF rendering
 
 ## Quick Start
 
@@ -334,6 +353,12 @@ mvn clean test
 Requires Java 21. No `--enable-preview` features.
 
 ## Changelog
+
+### v1.0.0 — 2026-05-03
+
+**Release**
+- Published to Maven Central (`io.github.lilb1tty`)
+- All five artifacts available: `excel4j-core`, `excel4j-formula`, `excel4j-report`, `excel4j-render`, `excel4j-bom`
 
 ### v1.6.0 — 2026-05-02
 

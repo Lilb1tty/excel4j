@@ -10,6 +10,8 @@
     <version>1.0.0</version>
   </parent>
   <artifactId>excel4j-render</artifactId>
+  <name>excel4j :: Render</name>
+  <description>PNG, JPEG, and PDF rendering for excel4j — export sheets to image and document formats.</description>
   <dependencies>
     <dependency>
       <groupId>io.github.lilb1tty</groupId>

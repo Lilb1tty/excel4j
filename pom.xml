@@ -135,7 +135,7 @@
           <artifactId>maven-javadoc-plugin</artifactId>
           <version>3.6.3</version>
           <configuration>
-            <additionalJOption>-Djava.awt.headless=true</additionalJOption>
+            <additionalJOption>-J-Djava.awt.headless=true</additionalJOption>
           </configuration>
         </plugin>
         <plugin>
@@ -159,7 +159,7 @@
             <executions>
               <execution>
                 <id>attach-sources</id>
-                <goals><goal>jar-only</goal></goals>
+                <goals><goal>jar-no-fork</goal></goals>
               </execution>
             </executions>
           </plugin>
