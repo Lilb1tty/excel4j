@@ -6,6 +6,8 @@ import io.github.lilb1tty.excel4j.core.io.internal.SharedStringsTable;
 import io.github.lilb1tty.excel4j.core.io.internal.StyleTable;
 import io.github.lilb1tty.excel4j.core.model.*;
 import io.github.lilb1tty.excel4j.core.model.style.CellStyle;
+import io.github.lilb1tty.excel4j.core.model.style.Fill;
+import io.github.lilb1tty.excel4j.core.model.style.Font;
 
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -14,6 +16,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -105,6 +109,12 @@ public class OoxmlWriter {
         w.writeStartDocument("UTF-8", "1.0");
         w.writeStartElement("Types");
         w.writeDefaultNamespace("http://schemas.openxmlformats.org/package/2006/content-types");
+        w.writeEmptyElement("Default");
+        w.writeAttribute("Extension", "rels");
+        w.writeAttribute("ContentType", "application/vnd.openxmlformats-package.relationships+xml");
+        w.writeEmptyElement("Default");
+        w.writeAttribute("Extension", "xml");
+        w.writeAttribute("ContentType", "application/xml");
         writeOverride(w, "/_rels/.rels",
             "application/vnd.openxmlformats-package.relationships+xml");
         writeOverride(w, "/xl/workbook.xml",
@@ -257,27 +267,44 @@ public class OoxmlWriter {
         w.writeStartElement("styleSheet");
         w.writeDefaultNamespace(
             "http://schemas.openxmlformats.org/spreadsheetml/2006/main");
+        List<CellStyle> styles = styleTable.all();
+
+        // Deduplicate fonts in appearance order
+        Map<Font, Integer> fontIndex = new LinkedHashMap<>();
+        for (var style : styles) {
+            fontIndex.computeIfAbsent(style.font(), k -> fontIndex.size());
+        }
+
+        // Collect unique solid fills in appearance order; mandatory fills occupy index 0+1
+        Map<Fill, Integer> solidFillIndex = new LinkedHashMap<>();
+        List<Fill> solidFills = new ArrayList<>();
+        for (var style : styles) {
+            Fill f = style.fill();
+            if (f.pattern() == Fill.FillPattern.SOLID && !solidFillIndex.containsKey(f)) {
+                solidFillIndex.put(f, 2 + solidFills.size());
+                solidFills.add(f);
+            }
+        }
+
         // fonts
         w.writeStartElement("fonts");
-        w.writeAttribute("count", String.valueOf(styleTable.size()));
-        for (var style : styleTable.all()) {
+        w.writeAttribute("count", String.valueOf(fontIndex.size()));
+        for (var font : fontIndex.keySet()) {
             w.writeStartElement("font");
-            if (style.font().isBold()) {
-                w.writeEmptyElement("b");
-            }
-            if (style.font().isItalic()) {
-                w.writeEmptyElement("i");
-            }
+            if (font.isBold()) w.writeEmptyElement("b");
+            if (font.isItalic()) w.writeEmptyElement("i");
+            if (font.isUnderline()) w.writeEmptyElement("u");
             w.writeEmptyElement("sz");
-            w.writeAttribute("val", String.valueOf(style.font().size()));
+            w.writeAttribute("val", String.valueOf(font.size()));
             w.writeEmptyElement("name");
-            w.writeAttribute("val", style.font().name());
+            w.writeAttribute("val", font.name());
             w.writeEndElement();
         }
         w.writeEndElement();
-        // fills (minimal)
+
+        // fills: index 0=none, 1=gray125 (both required by spec), then solid fills
         w.writeStartElement("fills");
-        w.writeAttribute("count", "2");
+        w.writeAttribute("count", String.valueOf(2 + solidFills.size()));
         w.writeStartElement("fill");
         w.writeEmptyElement("patternFill");
         w.writeAttribute("patternType", "none");
@@ -286,7 +313,19 @@ public class OoxmlWriter {
         w.writeEmptyElement("patternFill");
         w.writeAttribute("patternType", "gray125");
         w.writeEndElement();
+        for (var fill : solidFills) {
+            w.writeStartElement("fill");
+            w.writeStartElement("patternFill");
+            w.writeAttribute("patternType", "solid");
+            w.writeEmptyElement("fgColor");
+            w.writeAttribute("rgb", "FF" + fill.foregroundColor().replace("#", "").toUpperCase());
+            w.writeEmptyElement("bgColor");
+            w.writeAttribute("indexed", "64");
+            w.writeEndElement(); // patternFill
+            w.writeEndElement(); // fill
+        }
         w.writeEndElement();
+
         // borders (minimal)
         w.writeStartElement("borders");
         w.writeAttribute("count", "1");
@@ -297,6 +336,7 @@ public class OoxmlWriter {
         w.writeEmptyElement("bottom");
         w.writeEndElement();
         w.writeEndElement();
+
         // cellStyleXfs
         w.writeStartElement("cellStyleXfs");
         w.writeAttribute("count", "1");
@@ -306,16 +346,23 @@ public class OoxmlWriter {
         w.writeAttribute("fillId", "0");
         w.writeAttribute("borderId", "0");
         w.writeEndElement();
-        // cellXfs
+
+        // cellXfs — one entry per style, referencing correct fontId and fillId
         w.writeStartElement("cellXfs");
-        w.writeAttribute("count", String.valueOf(styleTable.size()));
-        for (int i = 0; i < styleTable.size(); i++) {
+        w.writeAttribute("count", String.valueOf(styles.size()));
+        for (var style : styles) {
+            int fontId = fontIndex.get(style.font());
+            int fillId = style.fill().pattern() == Fill.FillPattern.SOLID
+                    ? solidFillIndex.get(style.fill())
+                    : 0;
             w.writeEmptyElement("xf");
             w.writeAttribute("numFmtId", "0");
-            w.writeAttribute("fontId", String.valueOf(i));
-            w.writeAttribute("fillId", "0");
+            w.writeAttribute("fontId", String.valueOf(fontId));
+            w.writeAttribute("fillId", String.valueOf(fillId));
             w.writeAttribute("borderId", "0");
             w.writeAttribute("xfId", "0");
+            if (fontId != 0) w.writeAttribute("applyFont", "1");
+            if (fillId != 0) w.writeAttribute("applyFill", "1");
         }
         w.writeEndElement();
         w.writeEndElement();
@@ -342,14 +389,24 @@ public class OoxmlWriter {
         w.writeStartElement("sheetData");
 
         Map<CellRef, Cell> cells = sheet.cells();
+        // OOXML requires cells to be grouped inside <row r="N"> elements
         cells.entrySet().stream()
             .sorted(Map.Entry.comparingByKey(
                 java.util.Comparator.comparingInt(CellRef::row).thenComparingInt(CellRef::col)))
-            .forEach(entry -> {
+            .collect(java.util.stream.Collectors.groupingBy(
+                e -> e.getKey().row(),
+                java.util.LinkedHashMap::new,
+                java.util.stream.Collectors.toList()))
+            .forEach((rowNum, rowCells) -> {
                 try {
-                    writeCellXml(w, entry.getValue(), sst, styleTable);
+                    w.writeStartElement("row");
+                    w.writeAttribute("r", String.valueOf(rowNum));
+                    for (var entry : rowCells) {
+                        writeCellXml(w, entry.getValue(), sst, styleTable);
+                    }
+                    w.writeEndElement(); // row
                 } catch (XMLStreamException e) {
-                    throw new ExcelWriteException("Error writing cell", e);
+                    throw new ExcelWriteException("Error writing row", e);
                 }
             });
 
@@ -382,6 +439,13 @@ public class OoxmlWriter {
         w.writeAttribute("r", cell.getRef().toA1());
         int styleIdx = styleTable.add(cell.getStyle());
         if (styleIdx > 0) w.writeAttribute("s", String.valueOf(styleIdx));
+
+        // <f> must precede <v> per OOXML schema
+        if (cell.getFormula() != null) {
+            w.writeStartElement("f");
+            w.writeCharacters(cell.getFormula());
+            w.writeEndElement();
+        }
 
         CellValue value = cell.getValue();
         switch (value) {
@@ -424,12 +488,6 @@ public class OoxmlWriter {
                 throw new IllegalStateException(
                         "RangeValue cannot be written as a single cell value: " + range);
             }
-        }
-
-        if (cell.getFormula() != null) {
-            w.writeStartElement("f");
-            w.writeCharacters(cell.getFormula());
-            w.writeEndElement();
         }
 
         w.writeEndElement(); // c

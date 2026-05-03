@@ -7,7 +7,7 @@
 
   <groupId>io.github.lilb1tty</groupId>
   <artifactId>excel4j</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
   <packaging>pom</packaging>
 
   <name>excel4j</name>
@@ -35,7 +35,7 @@
     <url>https://github.com/Lilb1tty/excel4j</url>
     <connection>scm:git:git://github.com/Lilb1tty/excel4j.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/Lilb1tty/excel4j.git</developerConnection>
-    <tag>v1.0.0</tag>
+    <tag>v1.1.0</tag>
   </scm>
 
   <issueManagement>

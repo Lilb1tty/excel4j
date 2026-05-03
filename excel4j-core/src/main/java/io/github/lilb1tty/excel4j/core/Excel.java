@@ -20,6 +20,12 @@ public final class Excel {
         return new Workbook();
     }
 
+    public static Workbook create(String firstSheetName) {
+        Workbook wb = Workbook.empty();
+        wb.addSheet(firstSheetName);
+        return wb;
+    }
+
     public static Workbook read(Path path) {
         return new OoxmlReader().read(path);
     }

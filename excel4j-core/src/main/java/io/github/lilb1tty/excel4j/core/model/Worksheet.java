@@ -30,6 +30,10 @@ public class Worksheet {
         return cells.computeIfAbsent(ref, Cell::new);
     }
 
+    public RangeSelection range(String firstA1, String lastA1) {
+        return new RangeSelection(this, CellRange.of(firstA1, lastA1));
+    }
+
     public Map<CellRef, Cell> cells() {
         return Map.copyOf(cells);
     }

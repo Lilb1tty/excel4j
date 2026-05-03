@@ -2,17 +2,18 @@
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.lilb1tty/excel4j-core.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/io.github.lilb1tty/excel4j-core)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://openjdk.org/projects/jdk/21/)
+[![Java](https://img.shields.io/badge/Java-21%2B-orange.svg)](https://openjdk.org/projects/jdk/21/)
 
-Pure JDK 21 library for reading, writing, and templating Excel `.xlsx` files.
+Pure Java library for reading, writing, and templating Excel `.xlsx` files. Requires Java 21 or later.
 
 Inspired by [FlexCel](https://www.tmssoftware.com/site/flexcelnet.asp) (.NET) — built from scratch with zero external runtime dependencies. Not a wrapper over Apache POI.
 
 ```java
-// Create
-Workbook wb = Excel.create();
-wb.sheet("Sales").cell("A1").setValue(new TextValue("Q1 Revenue"));
-wb.sheet("Sales").cell("B1").setValue(new NumberValue(125000.50));
+// Create (named first sheet, no extra Sheet1)
+Workbook wb = Excel.create("Sales");
+Worksheet sheet = wb.sheet("Sales");
+sheet.cell("A1").setValue(new TextValue("Q1 Revenue"));
+sheet.cell("B1").setValue(new NumberValue(125000.50));
 Excel.write(wb, Path.of("report.xlsx"));
 
 // Read
@@ -30,7 +31,7 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 
 ## Features
 
-- **Zero runtime dependencies** — JDK 21 only
+- **Zero runtime dependencies** — pure Java, no third-party runtime deps
 - **Read & write `.xlsx`** — StAX streaming, low memory footprint
 - **Streaming read API** — row-by-row `Stream<Row>` for large files without full workbook load
 - **Formula evaluation** — 98 built-in functions with dependency graph and circular reference handling
@@ -38,13 +39,14 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 - **Pivot tables** — write pivot tables with row fields and data aggregations
 - **PNG/JPEG rendering** — render worksheets to images via AWT (headless-safe)
 - **PDF export** — render workbooks to PDF, one page per sheet
+- **Range selection** — apply styles and set values across a cell range in one call
 - **Type-safe cell values** — sealed `CellValue` interface with pattern-matching support
 - **Full JPMS** — `module-info.java` per module, strict compile-time boundaries
 - **Modern Java** — records, sealed interfaces, pattern matching switch
 
 ## Requirements
 
-- Java 21 (LTS)
+- Java 21 or later (Java 21 is the minimum required version)
 - Maven 3.9+
 
 ## Installation
@@ -55,20 +57,20 @@ Excel.write(output, Path.of("invoice-output.xlsx"));
 <dependency>
   <groupId>io.github.lilb1tty</groupId>
   <artifactId>excel4j-core</artifactId>
-  <version>1.0.0</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
 **Gradle (Kotlin DSL):**
 
 ```kotlin
-implementation("io.github.lilb1tty:excel4j-core:1.0.0")
+implementation("io.github.lilb1tty:excel4j-core:1.1.0")
 ```
 
 **Gradle (Groovy):**
 
 ```groovy
-implementation 'io.github.lilb1tty:excel4j-core:1.0.0'
+implementation 'io.github.lilb1tty:excel4j-core:1.1.0'
 ```
 
 Or use the BOM to manage all module versions at once:
@@ -79,7 +81,7 @@ Or use the BOM to manage all module versions at once:
     <dependency>
       <groupId>io.github.lilb1tty</groupId>
       <artifactId>excel4j-bom</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -104,7 +106,7 @@ import io.github.lilb1tty.excel4j.core.model.style.*;
 import java.nio.file.Path;
 import java.time.LocalDate;
 
-Workbook wb = Excel.create();
+Workbook wb = Excel.create("Orders");
 Worksheet sheet = wb.sheet("Orders");
 
 // Values
@@ -121,7 +123,7 @@ sheet.cell("B5").setFormula("=SUM(B2:B4)");
 
 // Style
 CellStyle headerStyle = CellStyle.DEFAULT
-    .withFont(Font.DEFAULT.withBold(true))
+    .withFont(Font.DEFAULT.bold())
     .withFill(Fill.solid("#4472C4"));
 sheet.cell("A1").setStyle(headerStyle);
 sheet.cell("B1").setStyle(headerStyle);
@@ -129,6 +131,34 @@ sheet.cell("C1").setStyle(headerStyle);
 
 Excel.write(wb, Path.of("orders.xlsx"));
 ```
+
+### Range selection
+
+Apply a style or set values across multiple cells in one call:
+
+```java
+CellStyle headerStyle = CellStyle.DEFAULT
+    .withFont(Font.DEFAULT.bold())
+    .withFill(Fill.solid("#4472C4"));
+
+// Apply style to A1:C1
+sheet.range("A1", "C1").setStyle(headerStyle);
+
+// Set values row by row (each inner list is one row)
+sheet.range("A1", "C2").setValues(List.of(
+    List.of(new TextValue("Product"), new TextValue("Price"), new TextValue("Date")),
+    List.of(new TextValue("Widget"), new NumberValue(29.99), new DateValue(LocalDate.now()))
+));
+
+// Chain style + values
+sheet.range("A1", "C1")
+    .setStyle(headerStyle)
+    .setValues(List.of(
+        List.of(new TextValue("Product"), new TextValue("Price"), new TextValue("Date"))
+    ));
+```
+
+`setValues` fills the range row by row. Values that exceed the range bounds are ignored.
 
 ### Read a workbook
 
@@ -214,7 +244,7 @@ The engine expands bands row-by-row, substitutes values, and preserves styles an
 
 ```java
 Workbook wb = Excel.create();
-Worksheet sheet = wb.sheet("Sales");
+Worksheet sheet = wb.addSheet("Sales");
 
 // Source data
 sheet.cell("A1").setValue(new TextValue("Product"));
@@ -350,9 +380,23 @@ See the full [Function Reference](docs/functions.md) for syntax, parameters, and
 mvn clean test
 ```
 
-Requires Java 21. No `--enable-preview` features.
+Requires Java 21 or later. No `--enable-preview` features.
 
 ## Changelog
+
+### v1.1.0 — 2026-05-03
+
+**excel4j-core**
+- `Excel.create(String sheetName)` — creates a workbook with a named first sheet, no extra default Sheet1
+- `Worksheet.range(String from, String to)` — returns a `RangeSelection` for bulk style and value operations
+- `RangeSelection.setStyle(CellStyle)` — applies a style to every cell in the range
+- `RangeSelection.setValues(List<List<CellValue>>)` — sets values row-by-row across the range
+- Fixed OOXML writer: cells now correctly wrapped in `<row r="N">` elements (was causing empty sheets in Excel)
+- Fixed OOXML writer: solid fill colors now written to `styles.xml` (was silently dropped)
+- Fixed OOXML writer: `fontId` and `fillId` in `cellXfs` now reference correct deduplicated indexes
+- Fixed OOXML writer: `<f>` (formula) element now written before `<v>` (value) per OOXML schema
+- Fixed OOXML writer: `Content_Types.xml` now includes required `Default` entries for `.rels` and `.xml`
+- Fixed OOXML writer: `applyFont` and `applyFill` attributes now set correctly in `cellXfs`
 
 ### v1.0.0 — 2026-05-03
 
